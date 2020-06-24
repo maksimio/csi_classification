@@ -1,19 +1,17 @@
-'''Модуль, в котором содержаться функции компановки df из CSI,
-а также функции предобработки данных. Имеются функции
-децимации, сглаживания.'''
+'''A module that contains df linking functions from CSI,
+as well as data preprocessing functions. There are functions
+decimation, smoothing.'''
 
 import pandas as pd
 from scipy.signal import savgol_filter
 from matplotlib import pyplot as plt
 
-# -----------------------------------------------------------------------КОМПАНОВКА DF
-
-
+# ---------- GROUPING ----------
 def split_csi(big_df, num_tones=56):
-    '''Возвращает массив CSI df, по num_tones амплитуд
-    в каждом df. Противоположна concat_csi(...). 
-    Принимает Big_df, в котором записны в строку
-    num_tones*4=224 поднесущих CSI.'''
+    '''Returns an array of CSI df, by num_tones amplitudes
+     in every df. The opposite of concat_csi (...).
+     Accepts Big_df in which are written to a string
+     num_tones * 4 = 224 CSI subcarriers.'''
     df_lst = []
     for k in range(4):
         one_df = big_df[[i+k*num_tones for i in range(0, num_tones)]]
@@ -24,8 +22,8 @@ def split_csi(big_df, num_tones=56):
 
 
 def concat_csi(df_lst):
-    '''Возвращает общий DataFrame, в котором записаны
-    подряд в строку 56*4=224 поднесущих CSI'''
+    '''Returns the generic DataFrame in which are written
+     row 56 * 4 = 224 CSI subcarriers'''
     type_ds = df_lst[0]['object_type']
     for i in range(len(df_lst)):
         df_lst[i] = df_lst[i].drop(['object_type'], axis=1)
@@ -34,13 +32,11 @@ def concat_csi(df_lst):
     return big_df.assign(object_type=type_ds)
 
 
-# -----------------------------------------------------------------------ПРЕДОБРАБОТКА DF
-
-
+# ---------- CHANGE ----------
 def down(df, *df_lst):
-    '''Опускает амплитуды csi, вычитая из каждого пакета
-    минимальное значение. Рекомендуется использовать индивидуально
-    к пакетам с каждого пути, а не к склеенному df.'''
+    '''Lowers csi amplitudes by subtracting from each packet
+     minimum value. It is recommended to use individually.
+     to packets from each path, and not to the glued df.'''
     object_type = df['object_type']
     min_col = df.drop(['object_type'], axis=1).min(axis=1)
     df_down = df.drop(['object_type'], axis=1).sub(min_col, axis=0)
@@ -57,11 +53,40 @@ def down(df, *df_lst):
         return df_down_lst
 
 
+def smooth_savgol(df, *df_lst, win_width=9, polyorder=3):
+    '''Smoothes csi. Not recommended
+     apply to glued df. Filter applied
+     Savitsky-Golay.'''
+    smoothed = savgol_filter(
+        df.drop(columns='object_type'), win_width, polyorder)
+    if len(df_lst) == 0:
+        return pd.DataFrame(smoothed).assign(object_type=df['object_type'].values)
+    else:
+        smoothed_lst = [pd.DataFrame(smoothed).assign(object_type=df['object_type'].values)]
+        for df in df_lst:
+            smoothed = savgol_filter(df.drop(columns='object_type'), win_width, polyorder)
+            smoothed_lst.append(pd.DataFrame(smoothed).assign(object_type=df['object_type'].values))
+        return smoothed_lst
+
+def smooth(df, *df_lst, window=5):
+    '''Smoothes csi.'''
+    smoothed = df.drop(columns='object_type').T.rolling(window, min_periods=1).mean().T
+    if len(df_lst) == 0:
+        return smoothed.assign(object_type=df['object_type'].values)
+    else:
+        smoothed_lst = [smoothed.assign(object_type=df['object_type'].values)]
+        for df in df_lst:
+            smoothed = df.drop(columns='object_type').T.rolling(5, min_periods=1).mean().T
+            smoothed_lst.append(smoothed.assign(object_type=df['object_type'].values))
+        return smoothed_lst
+
+
+# ---------- SCREENING ----------
 def cut_csi(df, number, shuffle: bool=True):
-    '''Возвращает dataframe, в котором осталось
-    number пакетов для каждого объекта. Shuffle - 
-    выбрать пакеты случайным образом. Только для
-    склеенного df при shuffle=True!'''
+    '''Returns the dataframe in which is left
+     number of packets for each object. Shuffle -
+     Choose packages randomly. Only for
+     glued df with shuffle = True!'''
     df_lst = []
     object_types = df['object_type'].unique()
     for obj_type in object_types:
@@ -73,11 +98,11 @@ def cut_csi(df, number, shuffle: bool=True):
 
 
 def decimate_one(df, k, *k_lst):
-    '''Удаляет каждую k-тую строку. Можно удалить любые
-    кратные строки из df, передав несколько
-    аргументов. Кратные строки могут пересекаться, их повторы
-    будут удалены перед drop. Таким образом, при передаче
-    (df, 2, 2) в функцию, от исходного df останется 1/2.'''
+    '''Deletes every kth row. You can delete any
+     multiple lines from df passing multiple
+     arguments. Multiple lines may intersect, their repetitions
+     will be deleted before drop. Thus, when transmitting
+     (df, 2, 2) to the function, 1/2 will remain from the original df.'''
     drop_index_lst = [i for i in range(0, df.shape[0], k)]
     for k in k_lst:
         drop_index_lst += [i for i in range(0, df.shape[0], k)]
@@ -86,31 +111,12 @@ def decimate_one(df, k, *k_lst):
 
 
 def decimate_every(df, k, *k_lst):
-    '''Удаляет каждую k-ю строку. Каждый раз после удаления
-    строки из df в нем сбрасываются индексы. Таким образом, при
-    передаче (df, 2, 2) в функцию, от исходного df останется 1/4.'''
+    '''Deletes every kth row. Every time after removal
+     rows from df in it are reset indices. Thus, when
+     passing (df, 2, 2) to the function, 1/4 will remain from the original df.'''
     drop_index_lst = [i for i in range(0, df.shape[0], k)]
     df = df.drop(drop_index_lst).reset_index(drop=True)
     for k in k_lst:
         drop_index_lst = [i for i in range(0, df.shape[0], k)]
         df = df.drop(drop_index_lst).reset_index(drop=True)
     return df
-
-
-def smooth_csi(df, *df_lst, win_width=9, polyorder=3):
-    '''Cглаживает csi. Не рекомендуется
-    применять к склеенному df. Применяется фильтр
-    Савицкого-Голея.'''
-    smoothed = savgol_filter(
-        df.drop(columns='object_type'), win_width, polyorder)
-    if len(df_lst) == 0:
-        return pd.DataFrame(smoothed).assign(object_type=df['object_type'].values)
-    else:
-        smoothed_lst = [pd.DataFrame(smoothed).assign(
-            object_type=df['object_type'].values)]
-        for df in df_lst:
-            smoothed = savgol_filter(
-                df.drop(columns='object_type'), win_width, polyorder)
-            smoothed_lst.append(pd.DataFrame(smoothed).assign(
-                object_type=df['object_type'].values))
-        return smoothed_lst

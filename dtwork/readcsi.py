@@ -26,7 +26,7 @@ for i in range(nr*nc):
     csi_im[i] = (ctypes.c_int * len(csi_im[i]))(*csi_im[i])
 
 def read_csi(csi_buf, nr, nc, num_tones):
-    '''Расшифровывает csi из csi_buf, вызывая с помощью ctypes C-функцию'''
+    '''Decrypts csi from csi_buf, calling c-function using ctypes'''
 
     if nr != 2 or nc != 2 or num_tones != 56:
         raise TypeError("Error: nr != 2 or nc != 2 or num_tones != 56")
@@ -41,11 +41,11 @@ def read_csi(csi_buf, nr, nc, num_tones):
 
 
 def read_log_file(filename, object_type, payload_on):
-    '''Читает бинарный файл с CSI. 
+    '''Reads a binary file with CSI.
 
-    object_type - строка, тип объекта, например, bottle или air. payload_on
-    - флаг, указывающий, надо ли записывать payload - payload обычно не нужен,
-    а время его считывания в массив довольно велико'''
+     object_type - string, object type, for example, bottle or air. payload_on
+     - a flag indicating whether payload should be written - payload is usually not needed,
+     and its reading time into the array is quite long'''
 
     with open(filename, 'rb') as f:
         len_file = path.getsize(filename)
@@ -62,7 +62,7 @@ def read_log_file(filename, object_type, payload_on):
             cur += 25
 
             if csi_matrix['csi_len'] > 0:
-                # Это условие позволяет экономить прилично времени
+                # This condition saves a decent amount of time
                 if csi_matrix['csi_len'] == 560:
                     csi_buf = list(unpack("B"*560, f.read(560)))
                 else:
@@ -76,7 +76,7 @@ def read_log_file(filename, object_type, payload_on):
                 csi_matrix['csi'] = 0
 
             if csi_matrix['payload_len'] > 0:
-                # Можно сделать как с csi при csi_len = 560, но payload_len не всегда равна 1040
+                # It can be done as with csi with csi_len = 560, but payload_len is not always equal to 1040
                 if payload_on:
                     csi_matrix['payload'] = [
                         unpack('B', f.read(1))[0] for i in range(csi_matrix['payload_len'])]
@@ -91,7 +91,7 @@ def read_log_file(filename, object_type, payload_on):
                 break
             csi_matrix['object_type'] = object_type
             ret.append(copy(csi_matrix))
-    return ret  # В исходнике почему-то отбрасывается последний пакет - здесь я это не делаю
+    return ret  # For some reason, the last packet is discarded in the source - here I do not
 
 # ---------- MIDDLE-LEVEL ----------
 def set_files_in_groups(file_path, groups):
@@ -125,8 +125,8 @@ def get_data(file_groups, payload_on=False):
 
 # ---------- HIGH-LEVEL ----------
 def get_csi_dfs(big_df):
-    '''Возвращает CSI DataFrame-ы в виде массива,
-    длина которого - число путей между антеннами'''
+    '''Returns CSI DataFrames as an array, whose
+    length is the number of paths between antennas'''
 
     csi_columns = [i for i in list(big_df) if 'csi_on_path_' in i]
 
@@ -140,8 +140,8 @@ def get_csi_dfs(big_df):
 
 
 def make_abs_to_csi_dfs(complex_csi_dfs):
-    '''Возвращает массив CSI-DataFrame, в котором комплексные
-    числа заменены на их модули'''
+    '''Returns a CSI-DataFrame array in which complex
+     numbers are replaced by their modules'''
 
     abs_csi_dfs = []
     for one_df in complex_csi_dfs:
@@ -152,8 +152,8 @@ def make_abs_to_csi_dfs(complex_csi_dfs):
 
 
 def get_abs_csi_dfs(filepath, groups):
-    '''Обертка. Считывает CSI из файлов, возвращает массив CSI-DataFrame,
-    в котором находятся амплитудные значения CSI'''
+    '''Wrapper. Reads CSI from files, returns a CSI-DataFrame array,
+     which contains the amplitude values of CSI'''
 
     file_groups = set_files_in_groups(filepath, groups)
     full_df = get_data(file_groups)
@@ -162,8 +162,8 @@ def get_abs_csi_dfs(filepath, groups):
 
 
 def get_abs_csi_df_big(filepath, groups):
-    '''Возвращает общий DataFrame, в котором записаны
-    подряд в строку 56*4=224 амплитуд CSI и тип объекта (group)'''
+    '''Returns the generic DataFrame in which are written
+     in a row to line 56 * 4 = 224 CSI amplitudes and object type (group)'''
 
     csi_dfs = get_abs_csi_dfs(filepath, groups)
     type_ds = csi_dfs[0]['object_type']
