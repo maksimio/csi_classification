@@ -12,8 +12,8 @@ col_vals = ['blue', 'orange', 'green', 'red', 'purple',
 
 
 def csi_plot_types(df, all_in_one=True):
-    '''Строит график, на котором csi для
-    каждого объекта обозначены разным цветом.'''
+    '''Plots a graph on which csi for
+    each object is marked with a different color.'''
     handles = []
     object_types = df['object_type'].unique()
     for obj_type, color, col_value in zip(object_types, colors, col_vals):
