@@ -1,6 +1,7 @@
 # This is the main module
 use_keras = True
 plot_and_exit = False
+select_features = True
 # ---------- MODULE IMPORTS ----------
 from time import time
 time_start = time()
@@ -24,6 +25,10 @@ if use_keras: # Our backend is TensorFlow
     from keras.layers import Dense
     from keras import utils
 
+from sklearn.feature_selection import SelectKBest
+from sklearn.feature_selection import chi2
+
+
 print('Imports complete -->', round(time() - time_start, 2))
 
 # ---------- DATA READING ----------
@@ -34,6 +39,8 @@ groups = {
 }
 # -=-=-=- Enter your training and test data paths here:
 main_path = path.join("csi", "use_in_paper","2_objects")
+#main_path = path.join("csi", "other","2_objects","250 cm")
+
 train_path = path.join(main_path,"train")
 test_path = path.join(main_path, "test")
 
@@ -90,7 +97,7 @@ if False:
     print('New df_train size:',df_train.shape[0])
 
 # ---------- DATA PREPARATION ----------
-df_train = df_train.sample(frac=1).reset_index(drop=True)
+df_train = df_train.sample(frac=1).reset_index(drop=True) # Mix df
 df_test = df_test.sample(frac=1).reset_index(drop=True)
 
 x_train = df_train.drop('object_type',axis=1)
@@ -99,7 +106,31 @@ x_test = df_test.drop('object_type',axis=1)
 y_test = df_test['object_type']
 
 # ---------- CLASSIFICATION (sklearn) ----------
+# Feature selection with statistic
+kBest = SelectKBest(score_func=chi2, k=10)
+scores_train = kBest.fit(x_train, y_train).scores_ # depend of df size
+scores_test = kBest.fit(x_test, y_test).scores_
+df = pd.DataFrame(pd.Series(scores_train,name='train'),pd.Series(x_train.columns,name='subcarriers'))
+df['train_%'] = (df['train']/df['train'].max()*100).astype(int)
+df['test'] = pd.Series(scores_test,name='test')
+df['test_%'] = (df['test']/df['test'].max()*100).astype(int)
+df['sig_way'] = [i//56+1 for i in range(224)]
+df['subc_num'] = [i % 56 + 1 for i in range(224)]
+df['test'] = df['test'].astype(int)
+df['train'] = df['train'].astype(int)
+
+df.to_csv('results\\statistic_correlation.csv') # In this file you can see correlation
+# for train and test datasets for all 4 (in our case) ways of signal between antennas
+
+
+
+
+
+exit()
+
 clf_res = pd.DataFrame(columns=('method name','accuracy','time'))
+
+
 
 logreg = LogisticRegression(max_iter=10000)
 start_fit = time()
@@ -187,6 +218,18 @@ if use_keras:
     clf_res.loc[len(clf_res)] = ['FFNN', score, round(time()-start_fit,2)]
 
     print('FFNN -->', round(time() - time_start, 2))
+
+# ---------- SELECTION BEST FEATURES ----------
+if select_features:
+    top_fnum = 20 # Number of top selected features
+    
+    # 1.Use Univariate Statistical Tests
+    sel = SelectKBest(score_func=chi2, k=top_fnum).fit(x_train, y_train)
+    features = x_train.columns[sel.get_support()]
+    print('Statistical selection:',features)
+
+
+
 
 # ---------- RESULTS COMPARISON ----------
 sorted_res = clf_res.sort_values('accuracy',ascending=False)
