@@ -10,20 +10,7 @@ from os import path
 from dtwork import readcsi
 from dtwork import prep
 from dtwork import plot
-
-from sklearn.linear_model import LogisticRegression
-from sklearn.svm import SVC, LinearSVC
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.naive_bayes import GaussianNB
-from sklearn.linear_model import Perceptron
-from sklearn.linear_model import SGDClassifier
-from sklearn.tree import DecisionTreeClassifier
-
-if use_keras: # Our backend is TensorFlow
-    from keras.models import Sequential
-    from keras.layers import Dense
-    from keras import utils
+from dtwork import ml
 
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import chi2
@@ -38,8 +25,8 @@ groups = {
     ".*air.*": "air"
 }
 # -=-=-=- Enter your training and test data paths here:
-main_path = path.join("csi", "use_in_paper","2_objects")
-#main_path = path.join("csi", "other","2_objects","250 cm")
+#main_path = path.join("csi", "use_in_paper","2_objects")
+main_path = path.join("csi", "other","2_objects","250 cm")
 
 train_path = path.join(main_path,"train")
 test_path = path.join(main_path, "test")
@@ -105,11 +92,11 @@ y_train = df_train['object_type']
 x_test = df_test.drop('object_type',axis=1)
 y_test = df_test['object_type']
 
-# ---------- CLASSIFICATION (sklearn) ----------
-# Feature selection with statistic
+# ---------- FEATURE SELECTION ----------
 kBest = SelectKBest(score_func=chi2, k=10)
 scores_train = kBest.fit(x_train, y_train).scores_ # depend of df size
 scores_test = kBest.fit(x_test, y_test).scores_
+
 df = pd.DataFrame(pd.Series(scores_train,name='train'),pd.Series(x_train.columns,name='subcarriers'))
 df['train_%'] = (df['train']/df['train'].max()*100).astype(int)
 df['test'] = pd.Series(scores_test,name='test')
@@ -122,117 +109,35 @@ df['train'] = df['train'].astype(int)
 df.to_csv('results\\statistic_correlation.csv') # In this file you can see correlation
 # for train and test datasets for all 4 (in our case) ways of signal between antennas
 
+# ---------- CLASSIFICATION ----------
 
+clf_res = ml.ml(x_train,y_train,x_test,y_test,df_train.copy(),df_test.copy(),time_start=time_start,use_keras=True)
+print('ML FOR ALL PATHES -->', round(time() - time_start, 2))
 
+# After see file statictic_correlation.csv we would like
+# to try use ML for every path of signal (max 4)
+dfs_train = prep.split_csi(df_train)
+dfs_test = prep.split_csi(df_train)
 
+i = 1
+for train, test in zip(dfs_train, dfs_test):
+    x_train_1 = train.drop('object_type',axis=1)
+    y_train_1 = train['object_type']
+    x_test_1 = test.drop('object_type',axis=1)
+    y_test_1 = test['object_type']
 
-exit()
+    clf_res_1 = ml.ml(x_train_1,y_train_1,x_test_1,y_test_1,train.copy(),test.copy(),time_start=time_start,use_keras=use_keras)
+    clf_res['acc_'+str(i)] = clf_res_1['accuracy']
+    clf_res['time_'+str(i)] = clf_res_1['time']
 
-clf_res = pd.DataFrame(columns=('method name','accuracy','time'))
-
-
-
-logreg = LogisticRegression(max_iter=10000)
-start_fit = time()
-logreg.fit(x_train, y_train)
-clf_res.loc[len(clf_res)] = ['Logistic Regression', round(logreg.score(x_test, y_test) * 100, 2), round(time()-start_fit,2)]
-print('Logistic Regression -->', round(time() - time_start, 2))
-
-svc = SVC()
-start_fit = time()
-svc.fit(x_train, y_train)
-clf_res.loc[len(clf_res)] = ['Support Vector Machines', round(svc.score(x_test, y_test) * 100, 2), round(time()-start_fit,2)]
-print('Support Vector Machines -->', round(time() - time_start, 2))
-
-knn = KNeighborsClassifier()
-start_fit = time()
-knn.fit(x_train, y_train)
-clf_res.loc[len(clf_res)] = ['K-nearest neighbors', round(knn.score(x_test, y_test) * 100, 2), round(time()-start_fit,2)]
-print('K-nearest neighbors -->', round(time() - time_start, 2))
-
-gaussian = GaussianNB()
-start_fit = time()
-gaussian.fit(x_train, y_train)
-clf_res.loc[len(clf_res)] = ['Gaussian Naive Bayes', round(gaussian.score(x_test, y_test) * 100, 2), round(time()-start_fit,2)]
-print('Gaussian Naive Bayes -->', round(time() - time_start, 2))
-
-perceptron = Perceptron()
-start_fit = time()
-perceptron.fit(x_train, y_train)
-clf_res.loc[len(clf_res)] = ['Perceptron', round(perceptron.score(x_test, y_test) * 100, 2), round(time()-start_fit,2)]
-print('Perceptron -->', round(time() - time_start, 2))
-
-linear_svc = LinearSVC(max_iter=10000)
-start_fit = time()
-linear_svc.fit(x_train, y_train)
-clf_res.loc[len(clf_res)] = ['Linear SVC', round(linear_svc.score(x_test, y_test) * 100, 2), round(time()-start_fit,2)]
-print('Linear SVC -->', round(time() - time_start, 2))
-
-sgd = SGDClassifier()
-start_fit = time()
-sgd.fit(x_train, y_train)
-clf_res.loc[len(clf_res)] = ['Stochastic Gradient Descent', round(sgd.score(x_test, y_test) * 100, 2), round(time()-start_fit,2)]
-print('Stochastic Gradient Descent -->', round(time() - time_start, 2))
-
-decision_tree = DecisionTreeClassifier()
-start_fit = time()
-decision_tree.fit(x_train, y_train)
-clf_res.loc[len(clf_res)] = ['Decision Tree', round(decision_tree.score(x_test, y_test) * 100, 2), round(time()-start_fit,2)]
-print('Decision Tree -->', round(time() - time_start, 2))
-
-random_forest = RandomForestClassifier()
-start_fit = time()
-random_forest.fit(x_train, y_train)
-clf_res.loc[len(clf_res)] = ['Random Forest', round(random_forest.score(x_test, y_test) * 100, 2), round(time()-start_fit,2)]
-print('Random Forest -->', round(time() - time_start, 2))
-
-# ---------- FFNN ----------
-if use_keras:
-    # Convert to numpy:
-    x_test = df_test.drop('object_type', axis=1).to_numpy()
-    x_train = df_train.drop('object_type', axis=1).to_numpy()
-    y_test = df_test['object_type'].to_numpy()
-    y_train = df_train['object_type'].to_numpy()
-
-    # Convert to categorical:
-    obj_lst = sorted(df_train['object_type'].unique())
-    i = 0
-    for o_name in obj_lst:
-        y_train[y_train == o_name] = i
-        y_test[y_test == o_name] = i
-        i += 1
-    y_train = utils.to_categorical(y_train,len(obj_lst))
-    y_test = utils.to_categorical(y_test,len(obj_lst))
-
-    print('Finish convert -->', round(time() - time_start, 2))
-
-    # FFNN:
-    model3 = Sequential()
-    model3.add(Dense(360, input_dim=224, activation="hard_sigmoid"))
-    model3.add(Dense(2, activation="softmax"))
-    model3.compile(loss="categorical_crossentropy", optimizer="Nadam", metrics=["accuracy"])
-    print(model3.summary())
-    start_fit = time()
-    model3.fit(x_train, y_train, batch_size=200, epochs=100, verbose=0, validation_split=0.1)
-    score = round(model3.evaluate(x_test, y_test)[1]*100,2)
-    clf_res.loc[len(clf_res)] = ['FFNN', score, round(time()-start_fit,2)]
-
-    print('FFNN -->', round(time() - time_start, 2))
-
-# ---------- SELECTION BEST FEATURES ----------
-if select_features:
-    top_fnum = 20 # Number of top selected features
-    
-    # 1.Use Univariate Statistical Tests
-    sel = SelectKBest(score_func=chi2, k=top_fnum).fit(x_train, y_train)
-    features = x_train.columns[sel.get_support()]
-    print('Statistical selection:',features)
-
-
-
+    i+=1
+    print('ML FOR', i,'PATH -->', round(time() - time_start, 2))
 
 # ---------- RESULTS COMPARISON ----------
+clf_res['aver_time_1234'] = ((clf_res['time_1']+clf_res['time_2']+clf_res['time_3']+clf_res['time_4'])/4).round(2)
+clf_res = clf_res.drop(['time_'+str(i+1) for i in range(4)],axis=1)
 sorted_res = clf_res.sort_values('accuracy',ascending=False)
 print('Classification results:')
 print(sorted_res)
+sorted_res.to_csv('results\\ml_results.csv')
 print('Finish -->', round(time() - time_start, 2))
