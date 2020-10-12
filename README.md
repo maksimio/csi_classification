@@ -1,4 +1,4 @@
-![](https://raw.githubusercontent.com/maksimio/csi_classification/master/Logo.png)
+![](https://raw.githubusercontent.com/maksimio/csi_classification/master/logo1.png)
 # Annotation
 
 # CSI
