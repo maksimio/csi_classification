@@ -4,10 +4,12 @@ import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC, LinearSVC
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import AdaBoostClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.linear_model import Perceptron
 from sklearn.linear_model import SGDClassifier
+from sklearn.neural_network import MLPClassifier
 from sklearn.tree import DecisionTreeClassifier
 
 # Our backend is TensorFlow
@@ -18,61 +20,27 @@ from keras import utils
 
 def ml(x_train, y_train, x_test, y_test, df_train, df_test, time_start, use_keras=True):
     '''The main machine learning function'''
+    classifiers = { # You can add your clfs or change params here:
+        'Logistic Regression':LogisticRegression(max_iter=10000),
+        'SVC':SVC(),
+        'K-nearest neighbors':KNeighborsClassifier(),
+        'Gaussian Naive Bayes':GaussianNB(),
+        'Perceptron':Perceptron(),
+        'Linear SVC': LinearSVC(max_iter=10000),
+        'Stochastic Gradient Descent':SGDClassifier(),
+        'Decision Tree':DecisionTreeClassifier(),
+        'Random Forest':RandomForestClassifier(),
+        'sk-learn Neural Net': MLPClassifier(),
+        'Ada Boost':AdaBoostClassifier(),
+    }
+
     clf_res = pd.DataFrame(columns=('method name','accuracy','time'))
 
-    logreg = LogisticRegression(max_iter=10000)
-    start_fit = time()
-    logreg.fit(x_train, y_train)
-    clf_res.loc[len(clf_res)] = ['Logistic Regression', round(logreg.score(x_test, y_test) * 100, 2), round(time()-start_fit,2)]
-    print('Logistic Regression -->', round(time() - time_start, 2))
-
-    svc = SVC()
-    start_fit = time()
-    svc.fit(x_train, y_train)
-    clf_res.loc[len(clf_res)] = ['Support Vector Machines', round(svc.score(x_test, y_test) * 100, 2), round(time()-start_fit,2)]
-    print('Support Vector Machines -->', round(time() - time_start, 2))
-
-    knn = KNeighborsClassifier()
-    start_fit = time()
-    knn.fit(x_train, y_train)
-    clf_res.loc[len(clf_res)] = ['K-nearest neighbors', round(knn.score(x_test, y_test) * 100, 2), round(time()-start_fit,2)]
-    print('K-nearest neighbors -->', round(time() - time_start, 2))
-
-    gaussian = GaussianNB()
-    start_fit = time()
-    gaussian.fit(x_train, y_train)
-    clf_res.loc[len(clf_res)] = ['Gaussian Naive Bayes', round(gaussian.score(x_test, y_test) * 100, 2), round(time()-start_fit,2)]
-    print('Gaussian Naive Bayes -->', round(time() - time_start, 2))
-
-    perceptron = Perceptron()
-    start_fit = time()
-    perceptron.fit(x_train, y_train)
-    clf_res.loc[len(clf_res)] = ['Perceptron', round(perceptron.score(x_test, y_test) * 100, 2), round(time()-start_fit,2)]
-    print('Perceptron -->', round(time() - time_start, 2))
-
-    linear_svc = LinearSVC(max_iter=10000)
-    start_fit = time()
-    linear_svc.fit(x_train, y_train)
-    clf_res.loc[len(clf_res)] = ['Linear SVC', round(linear_svc.score(x_test, y_test) * 100, 2), round(time()-start_fit,2)]
-    print('Linear SVC -->', round(time() - time_start, 2))
-
-    sgd = SGDClassifier()
-    start_fit = time()
-    sgd.fit(x_train, y_train)
-    clf_res.loc[len(clf_res)] = ['Stochastic Gradient Descent', round(sgd.score(x_test, y_test) * 100, 2), round(time()-start_fit,2)]
-    print('Stochastic Gradient Descent -->', round(time() - time_start, 2))
-
-    decision_tree = DecisionTreeClassifier()
-    start_fit = time()
-    decision_tree.fit(x_train, y_train)
-    clf_res.loc[len(clf_res)] = ['Decision Tree', round(decision_tree.score(x_test, y_test) * 100, 2), round(time()-start_fit,2)]
-    print('Decision Tree -->', round(time() - time_start, 2))
-
-    random_forest = RandomForestClassifier()
-    start_fit = time()
-    random_forest.fit(x_train, y_train)
-    clf_res.loc[len(clf_res)] = ['Random Forest', round(random_forest.score(x_test, y_test) * 100, 2), round(time()-start_fit,2)]
-    print('Random Forest -->', round(time() - time_start, 2))
+    for clf in classifiers:
+        start_fit = time()
+        classifiers[clf].fit(x_train, y_train)
+        clf_res.loc[len(clf_res)] = [clf, round(classifiers[clf].score(x_test, y_test) * 100, 2), round(time()-start_fit,2)]
+        print(clf, '-->', round(time() - time_start, 2))
 
     # ---------- FFNN ----------
     if use_keras:
@@ -92,9 +60,7 @@ def ml(x_train, y_train, x_test, y_test, df_train, df_test, time_start, use_kera
         y_train_net = utils.to_categorical(y_train_net,len(obj_lst))
         y_test_net = utils.to_categorical(y_test_net,len(obj_lst))
 
-        print('Finish convert -->', round(time() - time_start, 2))
-
-        # FFNN:
+        # FFNN - Feed Forward neural network:
         model3 = Sequential()
         model3.add(Dense(360, input_dim=x_train_net.shape[1], activation="hard_sigmoid"))
         model3.add(Dense(2, activation="softmax"))
@@ -103,8 +69,8 @@ def ml(x_train, y_train, x_test, y_test, df_train, df_test, time_start, use_kera
         start_fit = time()
         model3.fit(x_train_net, y_train_net, batch_size=200, epochs=100, verbose=0, validation_split=0.1)
         score = round(model3.evaluate(x_test_net, y_test_net)[1]*100,2)
-        clf_res.loc[len(clf_res)] = ['FFNN', score, round(time()-start_fit,2)]
+        clf_res.loc[len(clf_res)] = ['keras FFNN', score, round(time()-start_fit,2)]
 
-        print('FFNN -->', round(time() - time_start, 2))
+        print('keras FFNN -->', round(time() - time_start, 2))
     
     return clf_res

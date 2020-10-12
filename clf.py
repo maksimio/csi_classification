@@ -1,7 +1,8 @@
 # This is the main module
-use_keras = True
 plot_and_exit = False
 select_features = True
+use_keras = True
+learn_all_pathes = False
 # ---------- MODULE IMPORTS ----------
 from time import time
 time_start = time()
@@ -95,50 +96,52 @@ x_test = df_test.drop('object_type',axis=1)
 y_test = df_test['object_type']
 
 # ---------- FEATURE SELECTION ----------
-kBest = SelectKBest(score_func=chi2, k=10)
-scores_train = kBest.fit(x_train, y_train).scores_ # depend of df size
-scores_test = kBest.fit(x_test, y_test).scores_
+if select_features:
+    kBest = SelectKBest(score_func=chi2, k=10)
+    scores_train = kBest.fit(x_train, y_train).scores_ # values depend of df size
+    scores_test = kBest.fit(x_test, y_test).scores_
 
-df = pd.DataFrame(pd.Series(scores_train,name='train'),pd.Series(x_train.columns,name='subcarriers'))
-df['train_%'] = (df['train']/df['train'].max()*100).astype(int)
-df['test'] = pd.Series(scores_test,name='test')
-df['test_%'] = (df['test']/df['test'].max()*100).astype(int)
-df['sig_way'] = [i//56+1 for i in range(224)]
-df['subc_num'] = [i % 56 + 1 for i in range(224)]
-df['test'] = df['test'].astype(int)
-df['train'] = df['train'].astype(int)
+    df = pd.DataFrame(pd.Series(scores_train,name='train'),pd.Series(x_train.columns,name='subcarriers'))
+    df['train_%'] = (df['train']/df['train'].max()*100).astype(int)
+    df['test'] = pd.Series(scores_test,name='test')
+    df['test_%'] = (df['test']/df['test'].max()*100).astype(int)
+    df['sig_way'] = [i//56+1 for i in range(224)]
+    df['subc_num'] = [i % 56 + 1 for i in range(224)]
+    df['test'] = df['test'].astype(int)
+    df['train'] = df['train'].astype(int)
 
-df.to_csv('results\\statistic_correlation1.csv') # In this file you can see correlation
-# for train and test datasets for all 4 (in our case) ways of signal between antennas
-exit()
+    df.to_csv('results\\statistic_correlation1.csv') # In this file you can see correlation
+    # for train and test datasets for all 4 (in our case) ways of signal between antennas
+
 # ---------- CLASSIFICATION ----------
-
 clf_res = ml.ml(x_train,y_train,x_test,y_test,df_train.copy(),df_test.copy(),time_start=time_start,use_keras=True)
-print('ML FOR ALL PATHES -->', round(time() - time_start, 2))
 
-# After see file statictic_correlation.csv we would like
-# to try use ML for every path of signal (max 4)
-dfs_train = prep.split_csi(df_train)
-dfs_test = prep.split_csi(df_train)
+if learn_all_pathes:
+    print('ML FOR ALL PATHES -->', round(time() - time_start, 2))
+    # After see file statictic_correlation.csv we would like
+    # to try use ML for every path of signal (max 4)
+    dfs_train = prep.split_csi(df_train)
+    dfs_test = prep.split_csi(df_train)
 
-i = 1
-for train, test in zip(dfs_train, dfs_test):
-    x_train_1 = train.drop('object_type',axis=1)
-    y_train_1 = train['object_type']
-    x_test_1 = test.drop('object_type',axis=1)
-    y_test_1 = test['object_type']
+    i = 1
+    for train, test in zip(dfs_train, dfs_test):
+        x_train_1 = train.drop('object_type',axis=1)
+        y_train_1 = train['object_type']
+        x_test_1 = test.drop('object_type',axis=1)
+        y_test_1 = test['object_type']
 
-    clf_res_1 = ml.ml(x_train_1,y_train_1,x_test_1,y_test_1,train.copy(),test.copy(),time_start=time_start,use_keras=use_keras)
-    clf_res['acc_'+str(i)] = clf_res_1['accuracy']
-    clf_res['time_'+str(i)] = clf_res_1['time']
+        clf_res_1 = ml.ml(x_train_1,y_train_1,x_test_1,y_test_1,train.copy(),test.copy(),time_start=time_start,use_keras=use_keras)
+        clf_res['acc_'+str(i)] = clf_res_1['accuracy']
+        clf_res['time_'+str(i)] = clf_res_1['time']
 
-    i+=1
-    print('ML FOR', i,'PATH -->', round(time() - time_start, 2))
+        i+=1
+        print('ML FOR', i,'PATH -->', round(time() - time_start, 2))
+    
+    clf_res['aver_time_1234'] = ((clf_res['time_1']+clf_res['time_2']+clf_res['time_3']+clf_res['time_4'])/4).round(2)
+    clf_res = clf_res.drop(['time_'+str(i+1) for i in range(4)],axis=1)
 
 # ---------- RESULTS COMPARISON ----------
-clf_res['aver_time_1234'] = ((clf_res['time_1']+clf_res['time_2']+clf_res['time_3']+clf_res['time_4'])/4).round(2)
-clf_res = clf_res.drop(['time_'+str(i+1) for i in range(4)],axis=1)
-sorted_res = clf_res.sort_values('accuracy',ascending=False)
+sorted_res = clf_res.sort_values('accuracy',ascending=False).reset_index()
 print('Classification results:')
 print(sorted_res)
 sorted_res.to_csv('results\\ml_results.csv',index=False)
