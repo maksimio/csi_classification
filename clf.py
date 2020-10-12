@@ -25,8 +25,8 @@ groups = {
     ".*air.*": "air"
 }
 # -=-=-=- Enter your training and test data paths here:
-#main_path = path.join("csi", "use_in_paper","2_objects")
-main_path = path.join("csi", "other","2_objects","250 cm")
+main_path = path.join("csi", "use_in_paper","2_objects")
+#main_path = path.join("csi", "other","2_objects","250 cm")
 
 train_path = path.join(main_path,"train")
 test_path = path.join(main_path, "test")
@@ -84,9 +84,11 @@ if False:
     print('New df_train size:',df_train.shape[0])
 
 # ---------- DATA PREPARATION ----------
-df_train = df_train.sample(frac=1).reset_index(drop=True) # Mix df
-df_test = df_test.sample(frac=1).reset_index(drop=True)
+# Cutting packets to have the same sizes of all target values:
+df_train = prep.make_same(df_train)
+df_test = prep.make_same(df_test)
 
+# Prepare 
 x_train = df_train.drop('object_type',axis=1)
 y_train = df_train['object_type']
 x_test = df_test.drop('object_type',axis=1)
@@ -106,9 +108,9 @@ df['subc_num'] = [i % 56 + 1 for i in range(224)]
 df['test'] = df['test'].astype(int)
 df['train'] = df['train'].astype(int)
 
-df.to_csv('results\\statistic_correlation.csv') # In this file you can see correlation
+df.to_csv('results\\statistic_correlation1.csv') # In this file you can see correlation
 # for train and test datasets for all 4 (in our case) ways of signal between antennas
-
+exit()
 # ---------- CLASSIFICATION ----------
 
 clf_res = ml.ml(x_train,y_train,x_test,y_test,df_train.copy(),df_test.copy(),time_start=time_start,use_keras=True)
@@ -139,5 +141,5 @@ clf_res = clf_res.drop(['time_'+str(i+1) for i in range(4)],axis=1)
 sorted_res = clf_res.sort_values('accuracy',ascending=False)
 print('Classification results:')
 print(sorted_res)
-sorted_res.to_csv('results\\ml_results.csv')
+sorted_res.to_csv('results\\ml_results.csv',index=False)
 print('Finish -->', round(time() - time_start, 2))

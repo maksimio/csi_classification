@@ -120,3 +120,20 @@ def decimate_every(df, k, *k_lst):
         drop_index_lst = [i for i in range(0, df.shape[0], k)]
         df = df.drop(drop_index_lst).reset_index(drop=True)
     return df
+
+
+def make_same(df):
+    '''Cutting packets to have the same sizes
+     of all target values and mixing rows of df.'''
+    o_types = pd.unique(df['object_type']).tolist()
+    min_len = 1000000000
+    df_lst = []
+
+    for o in o_types:
+        min_len = min(df[df['object_type'] == o].shape[0],min_len)
+    for o in o_types:
+        df_lst.append(df[df['object_type'] == o].head(min_len))
+
+    df = pd.concat(df_lst)
+    # Mixing df:
+    return df.sample(frac=1).reset_index(drop=True)
