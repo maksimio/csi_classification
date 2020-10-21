@@ -35,6 +35,8 @@ test_path = path.join(main_path, "test")
 df_train = readcsi.get_abs_csi_df_big(train_path,groups)
 df_test = readcsi.get_abs_csi_df_big(test_path,groups)
 # Use pandas to work with data (example: print(df_train.head(5)))
+print(df_train)
+exit()
 
 print('Train packets number:\t', df_train.shape[0])
 print('Test packets number:\t', df_test.shape[0])
