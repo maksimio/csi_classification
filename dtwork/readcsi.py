@@ -90,7 +90,8 @@ def read_log_file(filename, object_type, payload_on):
             if (cur + 420) > len_file:
                 break
             csi_matrix['object_type'] = object_type
-            ret.append(copy(csi_matrix))
+            if csi_matrix['payload_len'] > 1000: # Filter other recieved Wi-Fi packages (special SCI packages have payload_len ~ 1050)
+                ret.append(copy(csi_matrix))
     return ret  # For some reason, the last packet is discarded in the source - here I do not
 
 # ---------- MIDDLE-LEVEL ----------

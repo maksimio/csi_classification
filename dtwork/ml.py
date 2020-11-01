@@ -28,9 +28,9 @@ def ml(x_train, y_train, x_test, y_test, df_train, df_test, time_start, use_kera
         'Perceptron':Perceptron(),
         'Linear SVC': LinearSVC(max_iter=10000),
         'Stochastic Gradient Descent':SGDClassifier(),
-        'Decision Tree':DecisionTreeClassifier(),
-        'Random Forest':RandomForestClassifier(),
-        'sk-learn Neural Net': MLPClassifier(),
+        'Decision Tree':DecisionTreeClassifier(max_depth=10),
+        'Random Forest':RandomForestClassifier(max_depth=10),
+        'sk-learn Neural Net': MLPClassifier(hidden_layer_sizes=(200,20)),
         'Ada Boost':AdaBoostClassifier(),
     }
 

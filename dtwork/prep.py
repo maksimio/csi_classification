@@ -135,5 +135,4 @@ def make_same(df):
         df_lst.append(df[df['object_type'] == o].head(min_len))
 
     df = pd.concat(df_lst)
-    # Mixing df:
-    return df.sample(frac=1).reset_index(drop=True)
+    return df.sample(frac=1).reset_index(drop=True) # Mixing df:
