@@ -1,5 +1,5 @@
 # This is the main module
-plot_and_exit = True
+plot_and_exit = False
 select_features = False
 use_keras = True
 learn_all_pathes = True
