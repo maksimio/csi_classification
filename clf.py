@@ -8,15 +8,14 @@ make_smooth = False
 # ---------- MODULE IMPORTS ----------
 from time import time
 time_start = time()
+
 import pandas as pd
 from os import path
 from dtwork import readcsi
 from dtwork import prep
 from dtwork import plot
 from dtwork import ml
-
-from sklearn.feature_selection import SelectKBest
-from sklearn.feature_selection import chi2
+from sklearn.feature_selection import SelectKBest, chi2
 
 
 print('Imports complete -->', round(time() - time_start, 2))
@@ -28,7 +27,7 @@ groups = {
     'room.*': 'room',
     '.*bathroom.*':'bathroom',
     'hall.*':'hall',
-    'toilet.*':'toilet'
+    'toilet.*':'toilet',
 }
 # -=-=-=- Enter your training and test data paths here:
 #main_path = path.join('csi', 'use_in_paper','2_objects')
