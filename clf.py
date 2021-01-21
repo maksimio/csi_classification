@@ -1,8 +1,9 @@
 # This is the main module
 plot_and_exit = False
 select_features = False
-use_keras = True
+use_keras = False
 learn_all_pathes = True
+
 # ---------- MODULE IMPORTS ----------
 from time import time
 time_start = time()
@@ -23,12 +24,15 @@ print('Imports complete -->', round(time() - time_start, 2))
 # -=-=-=- Enter groups here using regex (expression : group_name):
 groups = {
     ".*itch.*": "kitchen",
-    ".*oom.*": "room"
+    "room.*": "room",
+    ".*bathroom.*":'bathroom',
+    "hall.*":'hall',
+    "toilet.*":'toilet'
 }
 # -=-=-=- Enter your training and test data paths here:
 #main_path = path.join("csi", "use_in_paper","2_objects")
 #main_path = path.join("csi", "other","2_objects","250 cm")
-main_path = path.join("csi", "homelocation")
+main_path = path.join('csi', 'homelocation', 'five place')
 
 train_path = path.join(main_path,"train")
 test_path = path.join(main_path, "test")
@@ -36,6 +40,15 @@ test_path = path.join(main_path, "test")
 df_train = readcsi.get_abs_csi_df_big(train_path,groups)
 df_test = readcsi.get_abs_csi_df_big(test_path,groups)
 # Use pandas to work with data (example: print(df_train.head(5)))
+
+if False:
+  df_lst = prep.split_csi(df_train)
+  lowered_df_lst = prep.down3(*df_lst)
+  df_train = prep.concat_csi(lowered_df_lst)
+
+  df_lst = prep.split_csi(df_test)
+  lowered_df_lst = prep.down3(*df_lst)
+  df_test = prep.concat_csi(lowered_df_lst)
 
 print('Train packets number:\t', df_train.shape[0])
 print('Test packets number:\t', df_test.shape[0])
@@ -49,17 +62,17 @@ print('Preparation complete -->', round(time() - time_start, 2))
 if plot_and_exit:
     small_df_train = prep.cut_csi(df_train, 30) # To make the schedule faster
     # Simple showing:
-    if True:
+    if False:
         plot.csi_plot_types(small_df_train)
 
     # Showing with smoothing and lowering:
     if True:
         df_lst = prep.split_csi(small_df_train)
         smoothed_df_lst = prep.smooth(*df_lst)
-        lowered_df_lst = prep.down(*smoothed_df_lst)
+        lowered_df_lst = prep.down2(*smoothed_df_lst,level=150)
         new_small_df = prep.concat_csi(lowered_df_lst)
         
-        plot.csi_plot_types(new_small_df)
+        plot.csi_plot_types(small_df_train)
 
     # Wrong showing (smoothing full df):
     if True:
@@ -79,6 +92,7 @@ if plot_and_exit:
         plot.csi_plot_types(prep.concat_csi(smoothed_df_lst))
 
     exit()
+
 # Smoothing dfs:
 df_train = prep.concat_csi(prep.smooth(*prep.split_csi(df_train),window=2))
 df_test = prep.concat_csi(prep.smooth(*prep.split_csi(df_test),window=2))
@@ -119,7 +133,7 @@ if select_features:
     # for train and test datasets for all 4 (in our case) ways of signal between antennas
 
 # ---------- CLASSIFICATION ----------
-clf_res = ml.ml(x_train,y_train,x_test,y_test,df_train.copy(),df_test.copy(),time_start=time_start,use_keras=True)
+clf_res = ml.ml(x_train,y_train,x_test,y_test,df_train.copy(),df_test.copy(),time_start=time_start,use_keras=use_keras)
 
 if learn_all_pathes:
     print('ML FOR ALL PATHES -->', round(time() - time_start, 2))
