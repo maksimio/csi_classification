@@ -1,5 +1,7 @@
 '''Contain functions of reanding CSI. Pay attention to C-lib path!'''
-lib_path = './libextract_csi.so'
+lib_path = './libextract_csi.so' # The lib should be compilate
+# with command:
+# TODO write command for compilate
 
 from os import listdir, path
 from re import compile
@@ -25,27 +27,29 @@ for i in range(nr*nc):
     csi_re[i] = (ctypes.c_int * len(csi_re[i]))(*csi_re[i])
     csi_im[i] = (ctypes.c_int * len(csi_im[i]))(*csi_im[i])
 
+
 def read_csi(csi_buf, nr, nc, num_tones):
     '''Decrypts csi from csi_buf, calling c-function using ctypes'''
 
     if nr != 2 or nc != 2 or num_tones != 56:
-        raise TypeError("Error: nr != 2 or nc != 2 or num_tones != 56")
+        raise TypeError('Error: nr != 2 or nc != 2 or num_tones != 56')
 
     csi_buf = (ctypes.c_ubyte * len(csi_buf))(*csi_buf)
     global lib, csi_re, csi_im
     lib.read_csi(csi_buf, csi_re[0], csi_re[1],
                  csi_re[2], csi_re[3], csi_im[0], csi_im[1], csi_im[2], csi_im[3])
 
-    return {'csi_on_path_1': np.array(csi_re[0][:]) + 1j*np.array(csi_im[0][:]), 'csi_on_path_2': np.array(csi_re[1][:]) + 1j*np.array(csi_im[1][:]),
-            'csi_on_path_3': np.array(csi_re[2][:]) + 1j*np.array(csi_im[2][:]), 'csi_on_path_4': np.array(csi_re[3][:]) + 1j*np.array(csi_im[3][:])}
+    return {'csi_on_path_1': np.array(csi_re[0][:]) + 1j*np.array(csi_im[0][:]), 'csi_on_path_2': np.array(csi_re[1][:]) + 1j * np.array(csi_im[1][:]),
+            'csi_on_path_3': np.array(csi_re[2][:]) + 1j*np.array(csi_im[2][:]), 'csi_on_path_4': np.array(csi_re[3][:]) + 1j * np.array(csi_im[3][:])}
 
 
-def read_log_file(filename, object_type, payload_on):
+def read_log_file(filename, object_type, payload_on, filter_payload=True):
     '''Reads a binary file with CSI.
 
      object_type - string, object type, for example, bottle or air. payload_on
      - a flag indicating whether payload should be written - payload is usually not needed,
-     and its reading time into the array is quite long'''
+     and its reading time into the array is quite long. filter payload - true: drop packages if payload_len < 1000.
+     (Special packages have 1056 payload_len in my case)'''
 
     with open(filename, 'rb') as f:
         len_file = path.getsize(filename)
@@ -64,7 +68,7 @@ def read_log_file(filename, object_type, payload_on):
             if csi_matrix['csi_len'] > 0:
                 # This condition saves a decent amount of time
                 if csi_matrix['csi_len'] == 560:
-                    csi_buf = list(unpack("B"*560, f.read(560)))
+                    csi_buf = list(unpack('B' * 560, f.read(560)))
                 else:
                     csi_buf = [unpack('B', f.read(1))[0]
                                for i in range(csi_matrix['csi_len'])]
@@ -90,7 +94,7 @@ def read_log_file(filename, object_type, payload_on):
             if (cur + 420) > len_file:
                 break
             csi_matrix['object_type'] = object_type
-            if csi_matrix['payload_len'] > 1000: # Filter other recieved Wi-Fi packages (special SCI packages have payload_len ~ 1050)
+            if (not filter_payload) or csi_matrix['payload_len'] > 1000: # Filter other recieved Wi-Fi packages (special SCI packages have payload_len ~ 1050)
                 ret.append(copy(csi_matrix))
     return ret  # For some reason, the last packet is discarded in the source - here I do not
 
@@ -108,7 +112,7 @@ def set_files_in_groups(file_path, groups):
     
 def get_data(file_groups, payload_on=False):
     dcolumns = ['csi_on_path_' + str(path_num + 1)
-                for path_num in range(nr*nc)]
+                for path_num in range(nr * nc)]
     dcolumns += ['csi_len', 'err_info', 'nc', 'nr', 'num_tones', 'noise_floor',
                  'tx_channel', 'rate', 'rssi1', 'rssi2', 'rssi3', 'timestamp', 'payload_len', 'object_type', 'file_id']
     if payload_on:
@@ -128,7 +132,6 @@ def get_data(file_groups, payload_on=False):
 def get_csi_dfs(big_df):
     '''Returns CSI DataFrames as an array, whose
     length is the number of paths between antennas'''
-
     csi_columns = [i for i in list(big_df) if 'csi_on_path_' in i]
 
     csi_dfs = []
@@ -165,14 +168,14 @@ def get_abs_csi_dfs(filepath, groups):
 def get_abs_csi_df_big(filepath, groups):
     '''Returns the generic DataFrame in which are written
      in a row to line 56 * 4 = 224 CSI amplitudes and object type (group)'''
-
     csi_dfs = get_abs_csi_dfs(filepath, groups)
+    # ! здесь можно вызвать concat из prep
     type_ds = csi_dfs[0]['object_type']
-
     for i in range(len(csi_dfs)):
         csi_dfs[i] = csi_dfs[i].drop(['object_type'], axis=1)
 
     big_df = pd.concat(csi_dfs, axis=1)
-    big_df.columns = [i for i in range(0, len(csi_dfs)*csi_dfs[0].shape[1])]
+    big_df.columns = [i for i in range(0, len(csi_dfs) * csi_dfs[0].shape[1])]
 
     return big_df.assign(object_type=type_ds)
+    # TODO посмотреть, зачем нужна эта функция, она вроде дублирует concat в prep

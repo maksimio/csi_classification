@@ -108,6 +108,7 @@ def smooth_savgol(df, *df_lst, win_width=9, polyorder=3):
             smoothed_lst.append(pd.DataFrame(smoothed).assign(object_type=df['object_type'].values))
         return smoothed_lst
 
+
 def smooth(df, *df_lst, window=5):
     '''Smoothes csi.'''
     smoothed = df.drop(columns='object_type').T.rolling(window, min_periods=1).mean().T
@@ -156,8 +157,9 @@ def decimate_every(df, k, *k_lst):
      passing (df, 2, 2) to the function, 1/4 will remain from the original df.'''
     drop_index_lst = [i for i in range(0, df.shape[0], k)]
     df = df.drop(drop_index_lst).reset_index(drop=True)
+
     for k in k_lst:
-        drop_index_lst = [i for i in range(0, df.shape[0], k)]
+        drop_index_lst = [i for i in range(0, df.shape[0], k)] #? Что делает k в range(). Правильно ли работает эта функция
         df = df.drop(drop_index_lst).reset_index(drop=True)
     return df
 
@@ -170,7 +172,7 @@ def make_same(df):
     df_lst = []
 
     for o in o_types:
-        min_len = min(df[df['object_type'] == o].shape[0],min_len)
+        min_len = min(df[df['object_type'] == o].shape[0], min_len)
     for o in o_types:
         df_lst.append(df[df['object_type'] == o].head(min_len))
 
