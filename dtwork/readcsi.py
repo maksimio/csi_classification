@@ -71,7 +71,7 @@ def read_log_file(filename, object_type, payload_on, filter_payload=True):
                     csi_buf = list(unpack('B' * 560, f.read(560)))
                 else:
                     csi_buf = [unpack('B', f.read(1))[0]
-                               for i in range(csi_matrix['csi_len'])]
+                               for i in range(csi_matrix['csi_len'])] #TODO почему нельзя написать так: unpack('B'*100, fread(100))
 
                 csi_matrix.update(read_csi(
                     csi_buf, csi_matrix['nr'], csi_matrix['nc'], csi_matrix['num_tones']))
@@ -84,10 +84,10 @@ def read_log_file(filename, object_type, payload_on, filter_payload=True):
                 if payload_on:
                     csi_matrix['payload'] = [
                         unpack('B', f.read(1))[0] for i in range(csi_matrix['payload_len'])]
-                    cur += csi_matrix['payload_len']
+                    cur += csi_matrix['payload_len'] # ! оптимизировать
                 else:
                     f.read(csi_matrix['payload_len'])
-                    cur += csi_matrix['payload_len']
+                    cur += csi_matrix['payload_len'] # ! оптимизировать
             else:
                 csi_matrix['payload'] = 0
 
@@ -149,8 +149,7 @@ def make_abs_to_csi_dfs(complex_csi_dfs):
 
     abs_csi_dfs = []
     for one_df in complex_csi_dfs:
-        abs_csi_dfs.append(one_df.drop(
-            columns=['object_type']).abs().assign(object_type=one_df['object_type'].values))
+        abs_csi_dfs.append(one_df.drop(columns=['object_type']).abs().assign(object_type=one_df['object_type'].values))
 
     return abs_csi_dfs
 

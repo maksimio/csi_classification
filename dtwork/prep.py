@@ -52,7 +52,7 @@ def down(df, *df_lst):
             df_down_lst.append(df_down)
         return df_down_lst
 
-
+#TODO redact down2 and down3
 def down2(df, *df_lst, level = 100):
     '''Lowers csi amplitudes by subtracting from each packet
     minimum value. It is recommended to use individually.

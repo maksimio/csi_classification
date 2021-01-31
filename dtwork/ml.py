@@ -21,20 +21,20 @@ from keras import utils
 def ml(x_train, y_train, x_test, y_test, df_train, df_test, time_start, use_keras=True):
     '''The main machine learning function'''
     classifiers = { # You can add your clfs or change params here:
-        'Logistic Regression':LogisticRegression(max_iter=10000),
-        'SVC':SVC(),
-        'K-nearest neighbors':KNeighborsClassifier(),
-        'Gaussian Naive Bayes':GaussianNB(),
-        'Perceptron':Perceptron(),
+        'Logistic Regression': LogisticRegression(max_iter=10000),
+        'SVC': SVC(),
+        'K-nearest neighbors': KNeighborsClassifier(),
+        'Gaussian Naive Bayes': GaussianNB(),
+        'Perceptron': Perceptron(),
         'Linear SVC': LinearSVC(max_iter=10000),
-        'Stochastic Gradient Descent':SGDClassifier(),
-        'Decision Tree':DecisionTreeClassifier(max_depth=20),
-        'Random Forest':RandomForestClassifier(max_depth=20),
+        'Stochastic Gradient Descent': SGDClassifier(),
+        'Decision Tree': DecisionTreeClassifier(max_depth=20),
+        'Random Forest': RandomForestClassifier(max_depth=20),
         'sk-learn Neural Net': MLPClassifier(hidden_layer_sizes=(200, 20)),
-        'Ada Boost':AdaBoostClassifier(),
+        'Ada Boost': AdaBoostClassifier(),
     }
 
-    clf_res = pd.DataFrame(columns=('method name','accuracy','time'))
+    clf_res = pd.DataFrame(columns=('method name', 'accuracy', 'time'))
 
     for clf in classifiers:
         start_fit = time()

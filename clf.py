@@ -125,7 +125,7 @@ if learn_all_pathes:
     # After see file statictic_correlation.csv we would like
     # to try use ML for every path of signal (max 4)
     dfs_train = prep.split_csi(df_train)
-    dfs_test = prep.split_csi(df_train)
+    dfs_test = prep.split_csi(df_test) # !!!
 
     i = 1
     for train, test in zip(dfs_train, dfs_test):
@@ -145,8 +145,9 @@ if learn_all_pathes:
     clf_res = clf_res.drop(['time_' + str(i + 1) for i in range(4)], axis=1)
 
 # ---------- RESULTS COMPARISON ----------
-sorted_res = clf_res.sort_values('accuracy', ascending=False).reset_index()
+sorted_res = clf_res.sort_values(by='accuracy', ascending=False).reset_index()
 print('Classification results:')
 print(sorted_res)
 sorted_res.to_csv('results\\ml_results.csv', index=False)
 print('Finish -->', round(time() - time_start, 2))
+#TODO add average percent and reset index when sort
