@@ -17,9 +17,12 @@ from keras.models import Sequential
 from keras.layers import Dense
 from keras import utils
 
+i_pt = 0
 
 def ml(x_train, y_train, x_test, y_test, df_train, df_test, time_start, use_keras=True):
     '''The main machine learning function'''
+    global i_pt
+    
     classifiers = { # You can add your clfs or change params here:
         'Logistic Regression': LogisticRegression(max_iter=10000),
         'SVC': SVC(),
@@ -35,12 +38,16 @@ def ml(x_train, y_train, x_test, y_test, df_train, df_test, time_start, use_kera
     }
 
     clf_res = pd.DataFrame(columns=('method name', 'accuracy', 'time'))
+    predict_table = pd.DataFrame()
+    predict_table['Original'] = y_test
 
     for clf in classifiers:
         start_fit = time()
         classifiers[clf].fit(x_train, y_train)
         clf_res.loc[len(clf_res)] = [clf, round(classifiers[clf].score(x_test, y_test) * 100, 2), round(time()-start_fit, 2)]
         print(clf, '-->', round(time() - time_start, 2))
+        print(classifiers[clf].predict(x_test))
+        predict_table[clf] = classifiers[clf].predict(x_test)
 
     # ---------- FFNN ----------
     if use_keras:
@@ -71,6 +78,8 @@ def ml(x_train, y_train, x_test, y_test, df_train, df_test, time_start, use_kera
         score = round(model3.evaluate(x_test_net, y_test_net)[1]*100, 2)
         clf_res.loc[len(clf_res)] = ['keras FFNN', score, round(time()-start_fit, 2)]
 
-        print('keras FFNN -->', round(time() - time_start, 2)) #TODO фикс бага FFNN сыпется
+        print('keras FFNN -->', round(time() - time_start, 2)) # TODO фикс бага FFNN сыпется
+    i_pt += 1
+    predict_table.to_csv('results\\predict_table_' + str(i_pt) + '.csv')
     
     return clf_res

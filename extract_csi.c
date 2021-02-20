@@ -1,4 +1,5 @@
-// COMPILATION: gcc -shared -fPIC -o libextract_csi.so extract_csi.c
+// COMPILATION: gcc -shared -fPIC -o readcsi.dll extract_csi.c
+// OR: gcc -std=c11 -shared -o readcsi.dll extract_csi.c
 
 #define BITS_PER_BYTE 8
 #define BITS_PER_SYMBOL 10

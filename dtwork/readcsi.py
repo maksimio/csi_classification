@@ -1,7 +1,6 @@
 '''Contain functions of reanding CSI. Pay attention to C-lib path!'''
-lib_path = './libextract_csi.so' # The lib should be compilate
-# with command:
-# TODO write command for compilate
+lib_path = './readcsi.dll' # see .c-source file to find command for compilation
+
 
 from os import listdir, path
 from re import compile
@@ -94,7 +93,7 @@ def read_log_file(filename, object_type, payload_on, filter_payload=True):
             if (cur + 420) > len_file:
                 break
             csi_matrix['object_type'] = object_type
-            if (not filter_payload) or csi_matrix['payload_len'] > 1000: # Filter other recieved Wi-Fi packages (special SCI packages have payload_len ~ 1050)
+            if (not filter_payload) or csi_matrix['payload_len'] < 300: # Filter other recieved Wi-Fi packages (special SCI packages have payload_len ~ 1050)
                 ret.append(copy(csi_matrix))
     return ret  # For some reason, the last packet is discarded in the source - here I do not
 
