@@ -21,17 +21,17 @@ from keras import utils
 def ml(x_train, y_train, x_test, y_test, df_train, df_test, time_start, use_keras=True):
   '''The main machine learning function'''    
   classifiers = { # You can add your clfs or change params here:
-    # 'Logistic Regression': LogisticRegression(max_iter=10000),
-    # 'SVC': SVC(),
-    # 'K-nearest neighbors': KNeighborsClassifier(),
-    # 'Gaussian Naive Bayes': GaussianNB(),
-    # 'Perceptron': Perceptron(),
-    # 'Linear SVC': LinearSVC(max_iter=10000),
-    # 'Stochastic Gradient Descent': SGDClassifier(),
-    # 'Decision Tree': DecisionTreeClassifier(max_depth=20),
-    # 'Random Forest': RandomForestClassifier(max_depth=20),
-    # 'sk-learn Neural Net': MLPClassifier(hidden_layer_sizes=(200, 20)),
-    # 'Ada Boost': AdaBoostClassifier(),
+    'Logistic Regression': LogisticRegression(max_iter=10000),
+    'SVC': SVC(),
+    'K-nearest neighbors': KNeighborsClassifier(),
+    'Gaussian Naive Bayes': GaussianNB(),
+    'Perceptron': Perceptron(),
+    'Linear SVC': LinearSVC(max_iter=10000),
+    'Stochastic Gradient Descent': SGDClassifier(),
+    'Decision Tree': DecisionTreeClassifier(max_depth=20),
+    'Random Forest': RandomForestClassifier(max_depth=20),
+    'sk-learn Neural Net': MLPClassifier(hidden_layer_sizes=(200, 20)),
+    'Ada Boost': AdaBoostClassifier(),
   }
 
   clf_res = pd.DataFrame(columns=('method name', 'accuracy', 'time'))
@@ -68,8 +68,8 @@ def ml(x_train, y_train, x_test, y_test, df_train, df_test, time_start, use_kera
 
     start_fit = time()
     model.fit(x_train_net, y_train_net, batch_size=200, epochs=100, verbose=0, validation_split=0.1)
-    score = round(model.evaluate(x_test_net, y_test_net)[1]*100, 2)
-    clf_res.loc[len(clf_res)] = ['keras FFNN', score, round(time()-start_fit, 2)]
+    score = round(model.evaluate(x_test_net, y_test_net)[1] * 100, 2)
+    clf_res.loc[len(clf_res)] = ['keras FFNN', score, round(time() - start_fit, 2)]
 
     print('keras FFNN -->', round(time() - time_start, 2))
   return clf_res

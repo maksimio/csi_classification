@@ -26,28 +26,30 @@ print('Imports complete -->', round(time() - time_start, 2))
 
 # ---------------------------------------- READING ----------
 # -=-=-=- Enter groups here using regex (expression : group_name):
-dirs_to_groups = ['csi', 'homelocation', 'five place']
+dirs_to_groups = ['csi', 'other', '2_objects', '250 cm']
 groups = {
-    '.*itch.*': 'kitchen',
-    'room.*': 'room',
-    '.*bathroom.*':'bathroom',
-    'hall.*':'hall',
-    'toilet.*':'toilet',
-    #'.*air.*': 'air',
-    #'.*bottle.*': 'bottle'
+    #'.*itch.*': 'kitchen',
+    #'room.*': 'room',
+    #'.*bathroom.*':'bathroom',
+    #'hall.*':'hall',
+    #'toilet.*':'toilet',
+    '.*air.*': 'air',
+    '.*bottle.*': 'bottle'
 }
 
 main_path = path.join(*dirs_to_groups)
 train_path = path.join(main_path, 'train')
 test_path = path.join(main_path, 'test')
 
-df_train = readcsi.get_abs_csi_df_big(train_path, groups)
-df_test = readcsi.get_abs_csi_df_big(test_path, groups)
+df_phase_train = prep.concat_csi(readcsi.get_csi_dfs(train_path, groups, 'phase'))
+print(df_phase_train)
+exit()
 
 print('Train packets number:\t', df_train.shape[0])
 print('Test packets number:\t', df_test.shape[0])
 print('Reading complete -->', round(time() - time_start, 2))
-
+print(df_train)
+exit()
 # ---------------------------------------- PREPARATION ----------
 if make_smooth:  # Smoothing dfs:
   window = 2  # smoothing window width
@@ -106,8 +108,7 @@ if learn_all_pathes:
         x_test_1 = test.drop('object_type', axis=1)
         y_test_1 = test['object_type']
 
-        clf_res_1 = ml.ml(x_train_1, y_train_1, x_test_1, y_test_1, train.copy(
-        ), test.copy(), time_start=time_start, use_keras=use_keras)
+        clf_res_1 = ml.ml(x_train_1, y_train_1, x_test_1, y_test_1, train.copy(), test.copy(), time_start=time_start, use_keras=use_keras)
         clf_res['acc_'+str(i)] = clf_res_1['accuracy']
         clf_res['time_'+str(i)] = clf_res_1['time']
 
