@@ -3,6 +3,7 @@
 from matplotlib import pyplot as plt
 import seaborn as sns
 import matplotlib.patches as mpatches
+import dtwork.prep as prep
 
 
 colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
@@ -38,32 +39,29 @@ def csi_plot_types(df, all_in_one=True):
     plt.show()
 
 
+def plot_examples(df, size=50):
+  small_df = prep.cut_csi(df, size)
 
-  # if plot_and_exit:  # TODO check plot code
-  #   small_df_train = prep.cut_csi(df_train, 30)  # To make the schedule faster
+  if True:  # Simple showing:
+      csi_plot_types(small_df)
 
-  #   if False:  # Simple showing:
-  #       plot.csi_plot_types(small_df_train)
+  if True:  # Showing with smoothing and lowering:
+      df_lst = prep.split_csi(small_df)
+      smoothed_df_lst = prep.smooth(*df_lst)
+      lowered_df_lst = prep.down(*smoothed_df_lst)
+      new_small_df = prep.concat_csi(lowered_df_lst)
+      csi_plot_types(new_small_df)
 
-  #   if True:  # Showing with smoothing and lowering:
-  #       df_lst = prep.split_csi(small_df_train)
-  #       smoothed_df_lst = prep.smooth(*df_lst)
-  #       lowered_df_lst = prep.down(*smoothed_df_lst, level=150)
-  #       new_small_df = prep.concat_csi(lowered_df_lst)
-  #       plot.csi_plot_types(new_small_df)
+  if True:  # Wrong showing (smoothing full df):
+      moothed_df_lst = prep.smooth_savgol(small_df)
+      csi_plot_types(moothed_df_lst)
 
-  #   if True:  # Wrong showing (smoothing full df):
-  #       moothed_df_lst = prep.smooth_savgol(small_df_train)
-  #       plot.csi_plot_types(moothed_df_lst)
+  if True:  # Showing only one path of antennas:
+      df_lst = prep.split_csi(small_df)
+      csi_plot_types(df_lst[3])
 
-  #   if True:  # Showing only one path of antennas:
-  #       df_lst = prep.split_csi(small_df_train)
-  #       plot.csi_plot_types(df_lst[3])
-
-  #   if True:  # Showing smoothed one path and all paths using simple smoothing:
-  #       df_lst = prep.split_csi(small_df_train)
-  #       smoothed_df_lst = prep.smooth(*df_lst, window=2)
-  #       plot.csi_plot_types(smoothed_df_lst[0])
-  #       plot.csi_plot_types(prep.concat_csi(smoothed_df_lst))
-
-  #   exit()
+  if True:  # Showing smoothed one path and all paths using simple smoothing:
+      df_lst = prep.split_csi(small_df)
+      smoothed_df_lst = prep.smooth(*df_lst, window=2)
+      csi_plot_types(smoothed_df_lst[0])
+      csi_plot_types(prep.concat_csi(smoothed_df_lst))

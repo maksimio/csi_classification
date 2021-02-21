@@ -105,7 +105,6 @@ def get_data(file_groups, payload_on=False):
   for group_name in file_groups:
     for filename in file_groups[group_name]:
       data = read_log_file(filename, group_name, payload_on)
-      #if 'csi_on_path_1' in data:
       df_full_csi = pd.concat([df_full_csi, pd.DataFrame(data)])
 
   return df_full_csi.reset_index(drop=True)
@@ -149,7 +148,7 @@ def make_phase_csi_dfs(complex_csi_dfs):
 
 def get_csi_dfs(filepath, groups, type_csi):
   '''Wrapper. Reads CSI from files, returns a CSI-DataFrame array,
-    which contains the amplitude values of CSI'''
+    which contains the amplitude or phase values of CSI'''
   file_groups = set_files_in_groups(filepath, groups)
   full_df = get_data(file_groups)
   csi_dfs = get_complex_csi_dfs(full_df)
