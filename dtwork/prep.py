@@ -52,46 +52,6 @@ def down(df, *df_lst):
             df_down_lst.append(df_down)
         return df_down_lst
 
-#TODO redact down2 and down3
-def down2(df, *df_lst, level = 100):
-    '''Lowers csi amplitudes by subtracting from each packet
-    minimum value. It is recommended to use individually.
-    to packets from each path, and not to the glued df.'''
-    object_type = df['object_type']
-    min_col = df.drop(['object_type'], axis=1).mean(axis=1)
-    df_down = df.drop(['object_type'], axis=1).sub(min_col-level, axis=0)
-    df_down['object_type'] = object_type
-    if len(df_lst) == 0:
-        return df_down
-    else:
-        df_down_lst = [df_down]
-        for df in df_lst:
-            min_col = df.drop(['object_type'], axis=1).mean(axis=1)
-            df_down = df.drop(['object_type'], axis=1).sub(min_col-level, axis=0)
-            df_down['object_type'] = object_type
-            df_down_lst.append(df_down)
-        return df_down_lst
-
-
-def down3(df, *df_lst):
-    '''Lowers csi amplitudes by subtracting from each packet
-    minimum value. It is recommended to use individually.
-    to packets from each path, and not to the glued df.'''
-    object_type = df['object_type']
-    min_col = df.drop(['object_type'], axis=1).max(axis=1)
-    df_down = df.drop(['object_type'], axis=1).multiply(100, axis=0)
-    df_down['object_type'] = object_type
-    if len(df_lst) == 0:
-        return df_down
-    else:
-        df_down_lst = [df_down]
-        for df in df_lst:
-            min_col = df.drop(['object_type'], axis=1).max(axis=1)
-            df_down = df.drop(['object_type'], axis=1).multiply(100, axis=0)
-            df_down['object_type'] = object_type
-            df_down_lst.append(df_down)
-        return df_down_lst
-
 
 def smooth_savgol(df, *df_lst, win_width=9, polyorder=3):
     '''Smoothes csi. Not recommended

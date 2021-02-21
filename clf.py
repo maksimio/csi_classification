@@ -1,4 +1,9 @@
-# This is the main module
+'''This is the main file of project.'''
+
+# ---------------------------------------- MODULE IMPORTS ----------
+from time import time
+time_start = time()
+
 from sklearn.feature_selection import SelectKBest, chi2
 from dtwork import ml
 from dtwork import plot
@@ -6,96 +11,56 @@ from dtwork import prep
 from dtwork import readcsi
 from os import path
 import pandas as pd
-from time import time
 
-plot_and_exit = True
-select_features = False
-use_keras = False
-learn_all_pathes = True
-make_smooth = False
+# Settings:
+plot_and_exit = False     #
+select_features = False   #
+use_keras = True          #
+learn_all_pathes = True   #
 
-# ---------- MODULE IMPORTS ----------
-time_start = time()
-
+make_smooth = False       #
+make_reduce = False       #
+make_same   = True        # Cutting packets to have the same sizes of all target values:
 
 print('Imports complete -->', round(time() - time_start, 2))
 
-# ---------- DATA READING ----------
+# ---------------------------------------- READING ----------
 # -=-=-=- Enter groups here using regex (expression : group_name):
+dirs_to_groups = ['csi', 'homelocation', 'five place']
 groups = {
-    # '.*itch.*': 'kitchen',
-    # 'room.*': 'room',
-    # '.*bathroom.*':'bathroom',
-    # 'hall.*':'hall',
-    # 'toilet.*':'toilet',
-    '.*air.*': 'air',
-    '.*bottle.*': 'bottle'
+    '.*itch.*': 'kitchen',
+    'room.*': 'room',
+    '.*bathroom.*':'bathroom',
+    'hall.*':'hall',
+    'toilet.*':'toilet',
+    #'.*air.*': 'air',
+    #'.*bottle.*': 'bottle'
 }
-# -=-=-=- Enter your training and test data paths here:
-#main_path = path.join('csi', 'use_in_paper', '2_objects')
-main_path = path.join('csi', 'other', '2_objects', '250 cm')
-#main_path = path.join('csi', 'homelocation', 'two place')
 
+main_path = path.join(*dirs_to_groups)
 train_path = path.join(main_path, 'train')
 test_path = path.join(main_path, 'test')
 
 df_train = readcsi.get_abs_csi_df_big(train_path, groups)
 df_test = readcsi.get_abs_csi_df_big(test_path, groups)
-# Use pandas to work with data (example: print(df_train.head(5)))
 
 print('Train packets number:\t', df_train.shape[0])
 print('Test packets number:\t', df_test.shape[0])
-print('Preparation complete -->', round(time() - time_start, 2))
+print('Reading complete -->', round(time() - time_start, 2))
 
-# ---------- PROCESSING AND VISUALISATION ----------
-# There are examples of data processing and visualization,
-# including smoothing, reducing the number of packets and graphical representation.
-# We use our modules prep and plot here
-
-if plot_and_exit:  # TODO check plot code
-    small_df_train = prep.cut_csi(df_train, 30)  # To make the schedule faster
-
-    if False:  # Simple showing:
-        plot.csi_plot_types(small_df_train)
-
-    if True:  # Showing with smoothing and lowering:
-        df_lst = prep.split_csi(small_df_train)
-        smoothed_df_lst = prep.smooth(*df_lst)
-        lowered_df_lst = prep.down2(*smoothed_df_lst, level=150)
-        new_small_df = prep.concat_csi(lowered_df_lst)
-        plot.csi_plot_types(new_small_df)
-
-    if True:  # Wrong showing (smoothing full df):
-        moothed_df_lst = prep.smooth_savgol(small_df_train)
-        plot.csi_plot_types(moothed_df_lst)
-
-    if True:  # Showing only one path of antennas:
-        df_lst = prep.split_csi(small_df_train)
-        plot.csi_plot_types(df_lst[3])
-
-    if True:  # Showing smoothed one path and all paths using simple smoothing:
-        df_lst = prep.split_csi(small_df_train)
-        smoothed_df_lst = prep.smooth(*df_lst, window=2)
-        plot.csi_plot_types(smoothed_df_lst[0])
-        plot.csi_plot_types(prep.concat_csi(smoothed_df_lst))
-
-    exit()
-
+# ---------------------------------------- PREPARATION ----------
 if make_smooth:  # Smoothing dfs:
-    window = 2  # smoothing window width
-    df_train = prep.concat_csi(prep.smooth(
-        *prep.split_csi(df_train), window=window))
-    df_test = prep.concat_csi(prep.smooth(
-        *prep.split_csi(df_test), window=window))
+  window = 2  # smoothing window width
+  df_train = prep.concat_csi(prep.smooth(*prep.split_csi(df_train), window=window))
+  df_test = prep.concat_csi(prep.smooth(*prep.split_csi(df_test), window=window))
 
-if False:  # Reduce the size of df:
+if make_reduce:  # Reduce the size of df:
     df_train = prep.decimate_one(df_train, 5, 7, 9, 11, 13)
     print('New df_train size:', df_train.shape[0])
 
-# ---------- DATA PREPARATION ----------
-# Cutting packets to have the same sizes of all target values:
-df_train = prep.make_same(df_train)
-df_test = prep.make_same(df_test)
+if make_same:
+  df_train = prep.make_same(df_train)
+  df_test = prep.make_same(df_test)
 
 # Prepare
 x_train = df_train.drop('object_type', axis=1)
@@ -103,7 +68,7 @@ y_train = df_train['object_type']
 x_test = df_test.drop('object_type', axis=1)
 y_test = df_test['object_type']
 
-# ---------- FEATURE SELECTION ----------
+# ---------------------------------------- FEATURE SELECTION ----------
 if select_features:
     kBest = SelectKBest(score_func=chi2, k=10)
     # absolute values depend of df size
@@ -121,19 +86,18 @@ if select_features:
     df['train'] = df['train'].astype(int)
 
     # In this file you can see correlation
-    df.to_csv('results\\statistic_correlation1.csv')
+    df.to_csv('results\\statistic_correlation.csv')
     # for train and test datasets for all 4 (in our case) ways of signal between antennas
 
-# ---------- CLASSIFICATION ----------
-clf_res = ml.ml(x_train, y_train, x_test, y_test, df_train.copy(),
-                df_test.copy(), time_start=time_start, use_keras=use_keras)
+# ---------------------------------------- CLASSIFICATION ----------
+clf_res = ml.ml(x_train, y_train, x_test, y_test, df_train.copy(), df_test.copy(), time_start=time_start, use_keras=use_keras)
 
 if learn_all_pathes:
     print('\tML FOR ALL PATHES -->', round(time() - time_start, 2))
     # After see file statictic_correlation.csv we would like
     # to try use ML for every path of signal (max 4)
     dfs_train = prep.split_csi(df_train)
-    dfs_test = prep.split_csi(df_test)  # !!!
+    dfs_test = prep.split_csi(df_test)
 
     i = 1
     for train, test in zip(dfs_train, dfs_test):
@@ -154,7 +118,7 @@ if learn_all_pathes:
         (clf_res['time_1'] + clf_res['time_2'] + clf_res['time_3'] + clf_res['time_4']) / 4).round(2)
     clf_res = clf_res.drop(['time_' + str(i + 1) for i in range(4)], axis=1)
 
-# ---------- RESULTS COMPARISON ----------
+# ---------------------------------------- RESULTS COMPARISON ----------
 sorted_res = clf_res.sort_values(by='accuracy', ascending=False).reset_index()
 print('Classification results:')
 print(sorted_res)

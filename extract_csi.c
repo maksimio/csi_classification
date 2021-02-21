@@ -4,10 +4,10 @@
 #define BITS_PER_BYTE 8
 #define BITS_PER_SYMBOL 10
 
-int signbit_convert(int data, int maxbit)
+int signbit_convert(int data)
 {
-    if (data & (1 << (maxbit - 1)))
-        data -= (1 << maxbit);
+    if (data & (1 << (BITS_PER_SYMBOL - 1)))
+        data -= (1 << BITS_PER_SYMBOL);
     return data;
 }
 
@@ -53,20 +53,20 @@ void read_csi(unsigned char *local_h, int *re0, int *re1, int *re2, int *re3, in
                 switch (nr_idx + nc_idx * 2)
                 {
                 case 0:
-                    im0[k] = signbit_convert(imag, BITS_PER_SYMBOL);
-                    re0[k] = signbit_convert(real, BITS_PER_SYMBOL);
+                    im0[k] = signbit_convert(imag);
+                    re0[k] = signbit_convert(real);
                     break;
                 case 1:
-                    im1[k] = signbit_convert(imag, BITS_PER_SYMBOL);
-                    re1[k] = signbit_convert(real, BITS_PER_SYMBOL);
+                    im1[k] = signbit_convert(imag);
+                    re1[k] = signbit_convert(real);
                     break;
                 case 2:
-                    im2[k] = signbit_convert(imag, BITS_PER_SYMBOL);
-                    re2[k] = signbit_convert(real, BITS_PER_SYMBOL);
+                    im2[k] = signbit_convert(imag);
+                    re2[k] = signbit_convert(real);
                     break;
                 case 3:
-                    im3[k] = signbit_convert(imag, BITS_PER_SYMBOL);
-                    re3[k] = signbit_convert(real, BITS_PER_SYMBOL);
+                    im3[k] = signbit_convert(imag);
+                    re3[k] = signbit_convert(real);
                     break;
                 }
 
