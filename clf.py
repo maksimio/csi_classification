@@ -9,8 +9,14 @@ from dtwork import ml
 from dtwork import plot
 from dtwork import prep
 from dtwork import readcsi
+from dtwork import feature_space
 from os import path
 import pandas as pd
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+from dtwork.feature_selector import FeatureSelector
 
 # Settings:
 only_plot = False          #
@@ -26,6 +32,7 @@ print('Imports complete -->', round(time() - time_start, 2))
 
 # ---------------------------------------- READING ----------
 dirs_to_groups = ['csi', 'homelocation', 'two place']
+#dirs_to_groups = ['csi', 'other', '2_objects', '250 cm']
 complex_part = 'abs' # 'abs' or 'phase' will reading
 groups = { # use regex
     '.*itch.*': 'kitchen',
@@ -50,7 +57,6 @@ print('Reading complete -->', round(time() - time_start, 2))
 print('Found groups df_train:', df_train['object_type'].unique())
 print('Found groups df_test:', df_test['object_type'].unique())
 
-exit()
 # ---------------------------------------- PREPARATION ----------
 if make_smooth:
   window = 2  # smoothing window width
@@ -58,23 +64,53 @@ if make_smooth:
   df_test = prep.concat_csi(prep.smooth(*prep.split_csi(df_test), window=window))
 
 if make_reduce:
-    df_train = prep.decimate_one(df_train, 5, 7, 9, 11, 13)
-    print('New df_train size:', df_train.shape[0])
+  df_train = prep.decimate_one(df_train, 5, 7, 9, 11, 13)
+  print('New df_train size:', df_train.shape[0])
 
 if make_same:
   df_train = prep.make_same(df_train)
   df_test = prep.make_same(df_test)
 
 if only_plot:
-  df_train = prep.concat_csi(prep.down(*prep.split_csi(df_train)))
+  #df_train = prep.concat_csi(prep.down(*prep.split_csi(df_train)))
   #df_train_temp = df_train.drop(columns='object_type') < 3.14
   #print(df_train_temp)
   #df_train = df_train_temp.assign(object_type=df_train['object_type'].values)
   plot.plot_examples(df_train)
   exit()
 
-#df_train = prep.concat_csi(prep.down(*prep.split_csi(df_train)))
-#df_test = prep.concat_csi(prep.down(*prep.split_csi(df_test)))
+
+#df_train = pd.concat([df_train, *feature_space.all_uniq(*prep.split_csi(df_train), union=False)], axis=1)
+#df_test = pd.concat([df_test, *feature_space.all_uniq(*prep.split_csi(df_test), union=False)], axis=1)
+
+#####df_train = df_train.drop(['object_type'], axis=1).diff(axis=1).fillna(0).assign(object_type=df_train['object_type'].values) # GOOD
+#####df_test = df_test.drop(['object_type'], axis=1).diff(axis=1).fillna(0).assign(object_type=df_test['object_type'].values)    # GOOD
+
+#plot.plot_examples(df_train)
+#print(df_train)
+#sns.scatterplot(x='skew_1', y='std_1', hue='object_type', data=df_train, alpha=0.44)
+#plt.grid()
+#plt.show()
+#exit()
+#!---------------------------------------------- Feature selection
+data = df_train.drop(['object_type'], axis=1)[[i * 10 for i in range(220 // 10)]]
+labels = df_train['object_type']
+fs = FeatureSelector(data=data, labels=labels)
+fs.identify_collinear(correlation_threshold=0.95)
+fs.plot_collinear(plot_all=True)
+fs.identify_zero_importance('classification', 'auc')
+fs.plot_feature_importances(threshold = 0.95, plot_n = 15)
+plt.show()
+fs.identify_low_importance(cumulative_importance = 0.90)
+print(fs.feature_importances)
+print('ssssssssssssssssssssssssssssssss')
+print(fs.record_low_importance)
+
+# print(fs.record_collinear)
+exit()
+#!----------------------------------------------
+
+
 
 # Prepare
 x_train = df_train.drop('object_type', axis=1)
