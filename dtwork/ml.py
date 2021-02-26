@@ -102,10 +102,8 @@ def cnn(df_train, df_test):
     nb_epoch = 50
 
     # Нормализуем данные
-    x_train = x_train.astype('float32')
-    x_test = x_test.astype('float32')
-    x_train /= 255
-    x_test /= 255
+    x_train /= 400
+    x_test /= 400
 
     obj_lst = sorted(df_train['object_type'].unique())
     i = 0
