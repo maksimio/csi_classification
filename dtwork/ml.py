@@ -117,13 +117,13 @@ def cnn(df_train, df_test):
 
     # Создаем последовательную модель
     model = Sequential()
-    model.add(Conv2D(4, (3, 3), padding='same', input_shape=(4, 56, 1), activation='relu'))
-    model.add(Conv2D(4, (3, 3), activation='relu', padding='same'))
+    model.add(Conv2D(24, (3, 3), padding='same', input_shape=(4, 56, 1), activation='relu'))
+    #model.add(Conv2D(4, (3, 3), activation='relu', padding='same'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.3))
 
     model.add(Flatten())
-    model.add(Dense(56, activation='relu'))
+    model.add(Dense(100, activation='relu'))
     model.add(Dropout(0.3))
     model.add(Dense(len(obj_lst), activation='softmax'))
 
