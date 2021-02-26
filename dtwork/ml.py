@@ -17,6 +17,9 @@ from sklearn.tree import DecisionTreeClassifier
 from keras.models import Sequential
 from keras.layers import Dense
 from keras import utils
+import keras
+
+from matplotlib import pyplot as plt
 
 
 def ml(x_train, y_train, x_test, y_test, df_train, df_test, time_start, use_keras=True):
@@ -77,7 +80,6 @@ def ml(x_train, y_train, x_test, y_test, df_train, df_test, time_start, use_kera
 
 
 import numpy
-from keras.datasets import cifar10
 from keras.models import Sequential
 from keras.layers import Dense, Flatten, Activation
 from keras.layers import Dropout
@@ -129,6 +131,141 @@ def cnn(df_train, df_test):
     model.add(Dropout(0.1))
     model.add(Dense(40, activation='relu'))
     model.add(Dropout(0.1))
+    model.add(Dense(len(obj_lst), activation='softmax'))
+
+    sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
+    model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
+
+    model.fit(x_train, y_train, batch_size=batch_size, epochs=nb_epoch, validation_split=0.1, shuffle=True, verbose=2)
+    scores = model.evaluate(x_test, y_test, verbose=0)
+    print("Точность работы на тестовых данных: %.2f%%" % (scores[1] * 100))
+    print(model.summary())
+    model.save('results\\cnn2')
+
+
+
+
+def cnn_load(df_train, df_test):
+    # Convert to numpy:
+    x_train_net = df_train.drop('object_type', axis=1).to_numpy()
+    x_test_net = df_test.drop('object_type', axis=1).to_numpy()
+    y_train_net = df_train['object_type'].to_numpy()
+    y_test_net = df_test['object_type'].to_numpy()
+
+    x_train = np.reshape(x_train_net, (-1, 4, 56, 1))
+    x_test = np.reshape(x_test_net, (-1, 4, 56, 1))
+
+    batch_size = 50
+    nb_epoch = 50
+
+    # Нормализуем данные
+    x_train /= 400
+    x_test /= 400
+
+    obj_lst = sorted(df_train['object_type'].unique())
+    i = 0
+    for o_name in obj_lst:
+      y_train_net[y_train_net == o_name] = i
+      y_test_net[y_test_net == o_name] = i
+      i += 1
+    y_train = utils.to_categorical(y_train_net, len(obj_lst))
+    y_test = utils.to_categorical(y_test_net, len(obj_lst))
+
+    model = keras.models.load_model('results\\cnn')
+    scores = model.evaluate(x_test, y_test, verbose=0)
+    print("Точность работы на тестовых данных: %.2f%%" % (scores[1] * 100))
+    print(model.summary())  
+
+    activ_model = keras.Model(inputs=model.input, outputs=model.layers[4].output)
+    activation = activ_model.predict(x_train)
+    print(activation.shape)
+
+    plt.matshow(activation[0, :, :, 0], cmap='viridis')
+    plt.matshow(activation[1, :, :, 0], cmap='viridis')
+    plt.matshow(activation[2, :, :, 0], cmap='viridis')
+    plt.matshow(activation[3, :, :, 0], cmap='viridis')
+
+    plt.show()
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def cnn2(df_train, df_test):
+    # Convert to numpy:
+    x_train_net = df_train.drop('object_type', axis=1).to_numpy()
+    x_test_net = df_test.drop('object_type', axis=1).to_numpy()
+    y_train_net = df_train['object_type'].to_numpy()
+    y_test_net = df_test['object_type'].to_numpy()
+
+    x_train = np.reshape(x_train_net, (-1, 4, 56, 1))
+    x_test = np.reshape(x_test_net, (-1, 4, 56, 1))
+
+    batch_size = 50
+    nb_epoch = 50
+
+    # Нормализуем данные
+    x_train /= 400
+    x_test /= 400
+
+    obj_lst = sorted(df_train['object_type'].unique())
+    i = 0
+    for o_name in obj_lst:
+      y_train_net[y_train_net == o_name] = i
+      y_test_net[y_test_net == o_name] = i
+      i += 1
+    y_train = utils.to_categorical(y_train_net, len(obj_lst))
+    y_test = utils.to_categorical(y_test_net, len(obj_lst))
+    #print(x_train)
+
+    # Создаем последовательную модель
+    model = Sequential()
+    model.add(Conv2D(14, (3, 3), padding='same', input_shape=(4, 56, 1), activation='relu'))
+    model.add(MaxPooling2D(pool_size=(1, 2)))
+    model.add(Conv2D(28, (3, 3), padding='same', activation='relu'))
+    model.add(Dropout(0.33))
+    
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Conv2D(56, (3, 3), padding='same', activation='relu'))
+    model.add(Dropout(0.33))
+
+    model.add(Flatten())
+    model.add(Dense(30, activation='relu'))
+    model.add(Dropout(0.5))
     model.add(Dense(len(obj_lst), activation='softmax'))
 
     sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)

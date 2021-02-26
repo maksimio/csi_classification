@@ -83,8 +83,8 @@ if only_plot:
 #df_train = pd.concat([df_train, *feature_space.all_uniq(*prep.split_csi(df_train), union=False)], axis=1)
 #df_test = pd.concat([df_test, *feature_space.all_uniq(*prep.split_csi(df_test), union=False)], axis=1)
 
-#####df_train = df_train.drop(['object_type'], axis=1).diff(axis=1).fillna(0).assign(object_type=df_train['object_type'].values) # GOOD
-#####df_test = df_test.drop(['object_type'], axis=1).diff(axis=1).fillna(0).assign(object_type=df_test['object_type'].values)    # GOOD
+#df_train = df_train.drop(['object_type'], axis=1).diff(axis=1).fillna(0).assign(object_type=df_train['object_type'].values) # GOOD
+#df_test = df_test.drop(['object_type'], axis=1).diff(axis=1).fillna(0).assign(object_type=df_test['object_type'].values)    # GOOD
 
 #plot.plot_examples(df_train)
 #print(df_train)
@@ -95,11 +95,11 @@ if only_plot:
 # df_train = prep.concat_csi([df_train[0], df_train[2], df_train[1], df_train[3]])
 # df_test = prep.split_csi(df_test)
 # df_test = prep.concat_csi([df_test[0], df_test[2], df_test[1], df_test[3]])
-
-ml.cnn(df_train, df_test)
+#!---------------------------------------------- CNN
+ml.cnn_load(df_train, df_test)
 exit()
 #!---------------------------------------------- Feature selection
-data = df_train.drop(['object_type'], axis=1)[[i * 10 for i in range(220 // 10)]]
+data = df_train.drop(['object_type'], axis=1)#[[i * 10 for i in range(220 // 10)]]
 labels = df_train['object_type']
 fs = FeatureSelector(data=data, labels=labels)
 fs.identify_collinear(correlation_threshold=0.95)
@@ -112,7 +112,7 @@ print(fs.feature_importances)
 print('ssssssssssssssssssssssssssssssss')
 print(fs.record_low_importance)
 
-# print(fs.record_collinear)
+print(fs.record_collinear)
 exit()
 #!----------------------------------------------
 

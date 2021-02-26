@@ -47,7 +47,7 @@ def all_uniq(df, *df_lst, union=True):
 
   if len(df_lst) == 0:
     return data.assign(object_type=df['object_type'].values)
-  
+
   data_lst = [data]
   i = 1
   for df in df_lst:
