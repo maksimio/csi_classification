@@ -91,7 +91,8 @@ if only_plot:
 #sns.scatterplot(x='skew_1', y='std_1', hue='object_type', data=df_train, alpha=0.44)
 #plt.grid()
 #plt.show()
-#exit()
+ml.cnn(df_train, df_test)
+exit()
 #!---------------------------------------------- Feature selection
 data = df_train.drop(['object_type'], axis=1)[[i * 10 for i in range(220 // 10)]]
 labels = df_train['object_type']
