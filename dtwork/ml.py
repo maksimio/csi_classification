@@ -98,8 +98,7 @@ def cnn(df_train, df_test):
     x_train = np.reshape(x_train_net, (-1, 4, 56, 1))
     x_test = np.reshape(x_test_net, (-1, 4, 56, 1))
 
-    batch_size = 32
-    nb_classes = 2
+    batch_size = 50
     nb_epoch = 50
 
     # Нормализуем данные
@@ -114,8 +113,8 @@ def cnn(df_train, df_test):
       y_train_net[y_train_net == o_name] = i
       y_test_net[y_test_net == o_name] = i
       i += 1
-    y_train = utils.to_categorical(y_train_net, nb_classes)
-    y_test = utils.to_categorical(y_test_net, nb_classes)
+    y_train = utils.to_categorical(y_train_net, len(obj_lst))
+    y_test = utils.to_categorical(y_test_net, len(obj_lst))
     #print(x_train)
 
     # Создаем последовательную модель
@@ -126,9 +125,9 @@ def cnn(df_train, df_test):
     model.add(Dropout(0.3))
 
     model.add(Flatten())
-    model.add(Dense(50, activation='relu'))
+    model.add(Dense(56, activation='relu'))
     model.add(Dropout(0.3))
-    model.add(Dense(nb_classes, activation='softmax'))
+    model.add(Dense(len(obj_lst), activation='softmax'))
 
     sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
     model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
