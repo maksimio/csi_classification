@@ -137,3 +137,4 @@ def cnn(df_train, df_test):
     model.fit(x_train, y_train, batch_size=batch_size, epochs=nb_epoch, validation_split=0.1, shuffle=True, verbose=2)
     scores = model.evaluate(x_test, y_test, verbose=0)
     print("Точность работы на тестовых данных: %.2f%%" % (scores[1] * 100))
+    print(model.summary())

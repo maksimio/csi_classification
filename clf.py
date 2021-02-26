@@ -91,6 +91,11 @@ if only_plot:
 #sns.scatterplot(x='skew_1', y='std_1', hue='object_type', data=df_train, alpha=0.44)
 #plt.grid()
 #plt.show()
+# df_train = prep.split_csi(df_train)
+# df_train = prep.concat_csi([df_train[0], df_train[2], df_train[1], df_train[3]])
+# df_test = prep.split_csi(df_test)
+# df_test = prep.concat_csi([df_test[0], df_test[2], df_test[1], df_test[3]])
+
 ml.cnn(df_train, df_test)
 exit()
 #!---------------------------------------------- Feature selection
