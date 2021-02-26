@@ -100,7 +100,7 @@ def cnn(df_train, df_test):
 
     batch_size = 32
     nb_classes = 2
-    nb_epoch = 100
+    nb_epoch = 50
 
     # Нормализуем данные
     x_train = x_train.astype('float32')
@@ -116,18 +116,18 @@ def cnn(df_train, df_test):
       i += 1
     y_train = utils.to_categorical(y_train_net, nb_classes)
     y_test = utils.to_categorical(y_test_net, nb_classes)
-    print(x_train)
+    #print(x_train)
 
     # Создаем последовательную модель
     model = Sequential()
-    model.add(Conv2D(4, (2, 2), padding='same', input_shape=(4, 56, 1), activation='relu'))
-    model.add(Conv2D(4, (2, 2), activation='relu', padding='same'))
+    model.add(Conv2D(4, (3, 3), padding='same', input_shape=(4, 56, 1), activation='relu'))
+    model.add(Conv2D(4, (3, 3), activation='relu', padding='same'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.25))
+    model.add(Dropout(0.3))
 
     model.add(Flatten())
-    model.add(Dense(56, activation='relu'))
-    model.add(Dropout(0.5))
+    model.add(Dense(50, activation='relu'))
+    model.add(Dropout(0.3))
     model.add(Dense(nb_classes, activation='softmax'))
 
     sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
@@ -135,4 +135,4 @@ def cnn(df_train, df_test):
 
     model.fit(x_train, y_train, batch_size=batch_size, epochs=nb_epoch, validation_split=0.1, shuffle=True, verbose=2)
     scores = model.evaluate(x_test, y_test, verbose=0)
-    print("Точность работы на тестовых данных: %.2f%%" % (scores[1]*100))
+    print("Точность работы на тестовых данных: %.2f%%" % (scores[1] * 100))
