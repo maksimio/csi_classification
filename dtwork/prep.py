@@ -12,9 +12,9 @@ from matplotlib import pyplot as plt
 
 def split_csi(big_df, num_tones=56):
     '''Returns an array of CSI df, by num_tones amplitudes
-     in every df. The opposite of concat_csi (...).
-     Accepts Big_df in which are written to a string
-     num_tones * 4 = 224 CSI subcarriers.'''
+    in every df. The opposite of concat_csi (...).
+    Accepts Big_df in which are written to a string
+    num_tones * 4 = 224 CSI subcarriers'''
     df_lst = []
     for k in range(4):
         one_df = big_df[[i+k*num_tones for i in range(0, num_tones)]]
@@ -26,7 +26,7 @@ def split_csi(big_df, num_tones=56):
 
 def concat_csi(df_lst):
     '''Returns the generic DataFrame in which are written
-     row 56 * 4 = 224 CSI subcarriers'''
+    row 56 * 4 = 224 CSI subcarriers'''
     type_ds = df_lst[0]['object_type']
     for i in range(len(df_lst)):
         df_lst[i] = df_lst[i].drop(['object_type'], axis=1)
@@ -39,7 +39,7 @@ def concat_csi(df_lst):
 def down(df, *df_lst):
     '''Lowers csi amplitudes by subtracting from each packet
     minimum value. It is recommended to use individually.
-    to packets from each path, and not to the glued df.'''
+    to packets from each path, and not to the glued df'''
     object_type = df['object_type']
     min_col = df.drop(['object_type'], axis=1).min(axis=1)
     df_down = df.drop(['object_type'], axis=1).sub(min_col, axis=0)
@@ -58,8 +58,8 @@ def down(df, *df_lst):
 
 def smooth_savgol(df, *df_lst, win_width=9, polyorder=3):
     '''Smoothes csi. Not recommended
-     apply to glued df. Filter applied
-     Savitsky-Golay.'''
+    apply to glued df. Filter applied
+    Savitsky-Golay'''
     smoothed = savgol_filter(
         df.drop(columns='object_type'), win_width, polyorder)
     if len(df_lst) == 0:
@@ -68,15 +68,13 @@ def smooth_savgol(df, *df_lst, win_width=9, polyorder=3):
         smoothed_lst = [pd.DataFrame(smoothed).assign(
             object_type=df['object_type'].values)]
         for df in df_lst:
-            smoothed = savgol_filter(
-                df.drop(columns='object_type'), win_width, polyorder)
-            smoothed_lst.append(pd.DataFrame(smoothed).assign(
-                object_type=df['object_type'].values))
+            smoothed = savgol_filter(df.drop(columns='object_type'), win_width, polyorder)
+            smoothed_lst.append(pd.DataFrame(smoothed).assign(object_type=df['object_type'].values))
         return smoothed_lst
 
 
 def smooth(df, *df_lst, window=5):
-    '''Smoothes csi.'''
+    '''Smoothes csi'''
     smoothed = df.drop(columns='object_type').T.rolling(
         window, min_periods=1).mean().T
     if len(df_lst) == 0:
@@ -84,10 +82,8 @@ def smooth(df, *df_lst, window=5):
     else:
         smoothed_lst = [smoothed.assign(object_type=df['object_type'].values)]
         for df in df_lst:
-            smoothed = df.drop(columns='object_type').T.rolling(
-                5, min_periods=1).mean().T
-            smoothed_lst.append(smoothed.assign(
-                object_type=df['object_type'].values))
+            smoothed = df.drop(columns='object_type').T.rolling(5, min_periods=1).mean().T
+            smoothed_lst.append(smoothed.assign(object_type=df['object_type'].values))
         return smoothed_lst
 
 
@@ -157,7 +153,7 @@ def make_same(df):
     '''Cutting packets to have the same sizes
     of all target values and mixing rows of df.'''
     o_types = pd.unique(df['object_type']).tolist()
-    min_len = 1000000000
+    min_len = 100000000000
     df_lst = []
 
     for o in o_types:

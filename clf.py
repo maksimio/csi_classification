@@ -49,8 +49,7 @@ main_path = path.join(*dirs_to_groups)
 train_path = path.join(main_path, 'train')
 test_path = path.join(main_path, 'test')
 
-df_train = prep.concat_csi(readcsi.get_csi_dfs(
-    train_path, groups, complex_part))
+df_train = prep.concat_csi(readcsi.get_csi_dfs(train_path, groups, complex_part))
 df_test = prep.concat_csi(readcsi.get_csi_dfs(test_path, groups, complex_part))
 
 print('Train packets number:\t', df_train.shape[0])

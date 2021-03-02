@@ -31,8 +31,7 @@ def read_csi(csi_buf, nr, nc, num_tones):
 
     csi_buf = (ctypes.c_ubyte * len(csi_buf))(*csi_buf)
     global lib, csi_re, csi_im
-    lib.read_csi(csi_buf, csi_re[0], csi_re[1], csi_re[2],
-                 csi_re[3], csi_im[0], csi_im[1], csi_im[2], csi_im[3])
+    lib.read_csi(csi_buf, csi_re[0], csi_re[1], csi_re[2], csi_re[3], csi_im[0], csi_im[1], csi_im[2], csi_im[3])
 
     return {'csi_on_path_1': np.array(csi_re[0][:]) + 1j * np.array(csi_im[0][:]), 'csi_on_path_2': np.array(csi_re[1][:]) + 1j * np.array(csi_im[1][:]), 'csi_on_path_3': np.array(csi_re[2][:]) + 1j * np.array(csi_im[2][:]), 'csi_on_path_4': np.array(csi_re[3][:]) + 1j * np.array(csi_im[3][:])}
 
@@ -100,8 +99,7 @@ def set_files_in_groups(file_path, groups):
 
 
 def get_data(file_groups, payload_on=False):
-    dcolumns = ['csi_on_path_' + str(path_num + 1)
-                for path_num in range(nr * nc)]
+    dcolumns = ['csi_on_path_' + str(path_num + 1) for path_num in range(nr * nc)]
     dcolumns += ['csi_len', 'err_info', 'nc', 'nr', 'num_tones', 'noise_floor', 'tx_channel',
                  'rate', 'rssi1', 'rssi2', 'rssi3', 'timestamp', 'payload_len', 'object_type', 'file_id']
     if payload_on:
@@ -130,9 +128,8 @@ def get_complex_csi_dfs(big_df):
 
     return csi_dfs
 
+
 # --- GET ABS AND PHASE ---
-
-
 def make_abs_csi_dfs(complex_csi_dfs):
     '''Returns a CSI-DataFrame array in which complex
       numbers are replaced by their modules'''

@@ -1,4 +1,4 @@
-'''This file contains funcs which return Series'''
+'''This file contains functions, witch work with features of dfs.'''
 
 import pandas as pd
 
