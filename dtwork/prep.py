@@ -8,6 +8,8 @@ from scipy.signal import savgol_filter
 from matplotlib import pyplot as plt
 
 # ---------- GROUPING ----------
+
+
 def split_csi(big_df, num_tones=56):
     '''Returns an array of CSI df, by num_tones amplitudes
      in every df. The opposite of concat_csi (...).
@@ -63,98 +65,105 @@ def smooth_savgol(df, *df_lst, win_width=9, polyorder=3):
     if len(df_lst) == 0:
         return pd.DataFrame(smoothed).assign(object_type=df['object_type'].values)
     else:
-        smoothed_lst = [pd.DataFrame(smoothed).assign(object_type=df['object_type'].values)]
+        smoothed_lst = [pd.DataFrame(smoothed).assign(
+            object_type=df['object_type'].values)]
         for df in df_lst:
-            smoothed = savgol_filter(df.drop(columns='object_type'), win_width, polyorder)
-            smoothed_lst.append(pd.DataFrame(smoothed).assign(object_type=df['object_type'].values))
+            smoothed = savgol_filter(
+                df.drop(columns='object_type'), win_width, polyorder)
+            smoothed_lst.append(pd.DataFrame(smoothed).assign(
+                object_type=df['object_type'].values))
         return smoothed_lst
 
 
 def smooth(df, *df_lst, window=5):
     '''Smoothes csi.'''
-    smoothed = df.drop(columns='object_type').T.rolling(window, min_periods=1).mean().T
+    smoothed = df.drop(columns='object_type').T.rolling(
+        window, min_periods=1).mean().T
     if len(df_lst) == 0:
         return smoothed.assign(object_type=df['object_type'].values)
     else:
         smoothed_lst = [smoothed.assign(object_type=df['object_type'].values)]
         for df in df_lst:
-            smoothed = df.drop(columns='object_type').T.rolling(5, min_periods=1).mean().T
-            smoothed_lst.append(smoothed.assign(object_type=df['object_type'].values))
+            smoothed = df.drop(columns='object_type').T.rolling(
+                5, min_periods=1).mean().T
+            smoothed_lst.append(smoothed.assign(
+                object_type=df['object_type'].values))
         return smoothed_lst
 
 
 def normalize_phase(df, *df_lst):
-  print(df.drop(columns='object_type').abs())
+    print(df.drop(columns='object_type').abs())
 
-  res = df.drop(columns='object_type').T.diff().T.fillna(0)
-  print(res)
+    res = df.drop(columns='object_type').T.diff().T.fillna(0)
+    print(res)
 
-  a = 4
-  # df_data = np.mod(df.drop(columns='object_type'), 2 * np.pi)
-  # print(df_data)
-  # if len(df_lst) == 0:
-  #   return df_data.assign(object_type=df['object_type'].values)
-  # else:
-  #   lst = [df_data.assign(object_type=df['object_type'].values)]
-  #   for df in df_lst:
-  #     df_data = np.mod(df.drop(columns='object_type'), 2 * np.pi)
-  #     lst.append(df_data.assign(object_type=df['object_type'].values))
-  #   return lst
+    a = 4
+    # df_data = np.mod(df.drop(columns='object_type'), 2 * np.pi)
+    # print(df_data)
+    # if len(df_lst) == 0:
+    #   return df_data.assign(object_type=df['object_type'].values)
+    # else:
+    #   lst = [df_data.assign(object_type=df['object_type'].values)]
+    #   for df in df_lst:
+    #     df_data = np.mod(df.drop(columns='object_type'), 2 * np.pi)
+    #     lst.append(df_data.assign(object_type=df['object_type'].values))
+    #   return lst
 
 
 # ---------- SCREENING ----------
-def cut_csi(df, number, shuffle: bool=True):
-  '''Returns the dataframe in which is left
-  number of packets for each object. Shuffle -
-  Choose packages randomly. Only for
-  glued df with shuffle = True!'''
-  df_lst = []
-  object_types = df['object_type'].unique()
-  for obj_type in object_types:
-    obj_df = df[df['object_type'] == obj_type] 
-    if shuffle:
-      obj_df = obj_df.sample(frac=1).reset_index(drop=True)   
-    df_lst.append(obj_df.head(number))
-  return pd.concat(df_lst, axis=0).reset_index(drop=True)
+def cut_csi(df, number, shuffle: bool = True):
+    '''Returns the dataframe in which is left
+    number of packets for each object. Shuffle -
+    Choose packages randomly. Only for
+    glued df with shuffle = True!'''
+    df_lst = []
+    object_types = df['object_type'].unique()
+    for obj_type in object_types:
+        obj_df = df[df['object_type'] == obj_type]
+        if shuffle:
+            obj_df = obj_df.sample(frac=1).reset_index(drop=True)
+        df_lst.append(obj_df.head(number))
+    return pd.concat(df_lst, axis=0).reset_index(drop=True)
 
 
 def decimate_one(df, k, *k_lst):
-  '''Deletes every kth row. You can delete any
-  multiple lines from df passing multiple
-  arguments. Multiple lines may intersect, their repetitions
-  will be deleted before drop. Thus, when transmitting
-  (df, 2, 2) to the function, 1/2 will remain from the original df.'''
-  drop_index_lst = [i for i in range(0, df.shape[0], k)]
-  for k in k_lst:
-    drop_index_lst += [i for i in range(0, df.shape[0], k)]
-  drop_index_lst = list(set(drop_index_lst))
-  return df.drop(drop_index_lst).reset_index(drop=True)
+    '''Deletes every kth row. You can delete any
+    multiple lines from df passing multiple
+    arguments. Multiple lines may intersect, their repetitions
+    will be deleted before drop. Thus, when transmitting
+    (df, 2, 2) to the function, 1/2 will remain from the original df.'''
+    drop_index_lst = [i for i in range(0, df.shape[0], k)]
+    for k in k_lst:
+        drop_index_lst += [i for i in range(0, df.shape[0], k)]
+    drop_index_lst = list(set(drop_index_lst))
+    return df.drop(drop_index_lst).reset_index(drop=True)
 
 
 def decimate_every(df, k, *k_lst):
-  '''Deletes every kth row. Every time after removal
-    rows from df in it are reset indices. Thus, when
-    passing (df, 2, 2) to the function, 1/4 will remain from the original df.'''
-  drop_index_lst = [i for i in range(0, df.shape[0], k)]
-  df = df.drop(drop_index_lst).reset_index(drop=True)
-
-  for k in k_lst:
-    drop_index_lst = [i for i in range(0, df.shape[0], k)] #? Что делает k в range(). Правильно ли работает эта функция
+    '''Deletes every kth row. Every time after removal
+      rows from df in it are reset indices. Thus, when
+      passing (df, 2, 2) to the function, 1/4 will remain from the original df.'''
+    drop_index_lst = [i for i in range(0, df.shape[0], k)]
     df = df.drop(drop_index_lst).reset_index(drop=True)
-  return df
+
+    for k in k_lst:
+        # ? Что делает k в range(). Правильно ли работает эта функция
+        drop_index_lst = [i for i in range(0, df.shape[0], k)]
+        df = df.drop(drop_index_lst).reset_index(drop=True)
+    return df
 
 
 def make_same(df):
-  '''Cutting packets to have the same sizes
-  of all target values and mixing rows of df.'''
-  o_types = pd.unique(df['object_type']).tolist()
-  min_len = 1000000000
-  df_lst = []
+    '''Cutting packets to have the same sizes
+    of all target values and mixing rows of df.'''
+    o_types = pd.unique(df['object_type']).tolist()
+    min_len = 1000000000
+    df_lst = []
 
-  for o in o_types:
-    min_len = min(df[df['object_type'] == o].shape[0], min_len)
-  for o in o_types:
-    df_lst.append(df[df['object_type'] == o].head(min_len))
+    for o in o_types:
+        min_len = min(df[df['object_type'] == o].shape[0], min_len)
+    for o in o_types:
+        df_lst.append(df[df['object_type'] == o].head(min_len))
 
-  df = pd.concat(df_lst)
-  return df.sample(frac=1).reset_index(drop=True) # mixing df
+    df = pd.concat(df_lst)
+    return df.sample(frac=1).reset_index(drop=True)  # mixing df
