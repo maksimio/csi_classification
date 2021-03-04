@@ -163,3 +163,13 @@ def make_same(df):
 
     df = pd.concat(df_lst)
     return df.sample(frac=1).reset_index(drop=True)  # mixing df
+
+
+
+
+
+
+# df_train = df_train.drop(['object_type'], axis=1).diff(axis=1).fillna(0).assign(object_type=df_train['object_type'].values) # GOOD
+# df_test = df_test.drop(['object_type'], axis=1).diff(axis=1).fillna(0).assign(object_type=df_test['object_type'].values)    # GOOD
+
+

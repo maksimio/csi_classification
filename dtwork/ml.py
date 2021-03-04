@@ -66,7 +66,7 @@ def fit_sklearn(df_train, df_test):
         start_fit = time()
         classifiers[clf].fit(x_train, y_train)
         clf_res.loc[len(clf_res)] = [clf, round(classifiers[clf].score(x_test, y_test) * 100, 2), round(time() - start_fit, 2)]
-        print(clf, '-->', round(time(), 2))
+        print(clf, 'accuracy:', round(classifiers[clf].score(x_test, y_test) * 100, 2), '-->', round(time(), 2))
 
     return clf_res
 
@@ -77,8 +77,7 @@ def fit_ffnn(df_train, df_test):
     model = Sequential()
     model.add(Dense(360, input_dim=x_train.shape[1], activation='hard_sigmoid'))
     model.add(Dense(len(df_train['object_type'].unique()), activation='softmax'))
-    model.compile(loss='categorical_crossentropy',
-                  optimizer='Nadam', metrics=['accuracy'])
+    model.compile(loss='categorical_crossentropy', optimizer='Nadam', metrics=['accuracy'])
 
     start_fit = time()
     model.fit(x_train, y_train, batch_size=200, epochs=100, verbose=0, validation_split=0.1)
@@ -118,7 +117,7 @@ def fit_cnn(df_train, df_test):
     scores = model.evaluate(x_test, y_test, verbose=0)
     print("Точность работы на тестовых данных: %.2f%%" % (scores[1] * 100))
     #print(model.summary())
-    #model.save('results\\cnn2')
+    model.save('results\\cnn3')
 
 
 def cnn_load(df_train, df_test):
