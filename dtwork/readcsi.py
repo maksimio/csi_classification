@@ -5,7 +5,7 @@ import ctypes
 from struct import unpack
 from re import compile
 from os import listdir, path
-lib_path = './readcsi.dll'  # see .c-source file to find command for compilation
+lib_path = 'dll\\readcsi.dll'  # see .c-source file to find command for compilation
 
 
 # ---------- LOW-LEVEL ----------

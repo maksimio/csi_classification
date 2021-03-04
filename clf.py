@@ -1,6 +1,11 @@
 '''This is the main file of project.'''
 # ---------------------------------------- MODULE IMPORTS ----------
-ignore_warnings = True # For ignore all warnings, use it only if you sure
+# Settings:
+make_smooth = True         # Smoothing df. You can set the width of smooth window in code below
+make_reduce = False         # Reduce the size of df
+make_same = False           # Cutting packets to have the same sizes of all target values
+ignore_warnings = True     # For ignore all warnings, use it only if you sure
+
 if ignore_warnings:
     import warnings, os
     warnings.filterwarnings("ignore", category=FutureWarning)
@@ -9,7 +14,6 @@ if ignore_warnings:
 from time import time
 time_start = time()
 
-from dtwork.feature_selector import FeatureSelector #! delete
 import matplotlib.pyplot as plt
 from os import path
 from dtwork import features
@@ -21,17 +25,7 @@ from dtwork import ml
 import pandas as pd
 import numpy as np
 
-# Settings:
-# only_plot = False          #
-select_features = False    #
-use_keras = True          #
-learn_single_pathes = False   #
-
-make_smooth = True         # Smoothing df. You can set the width of smooth window in code below
-make_reduce = False         # Reduce the size of df
-make_same = True            # Cutting packets to have the same sizes of all target values
-np.random.seed(42)          # Set seed for repeatability of results
-
+np.random.seed(42) # Set seed for repeatability of results
 print('Imports complete -->', round(time() - time_start, 2))
 
 # ---------------------------------------- READING ----------
@@ -59,7 +53,7 @@ print('Reading complete -->', round(time() - time_start, 2))
 
 # ---------------------------------------- PREPARATION ----------
 if make_smooth:
-    window = 5  # Smoothing window width
+    window = 2  # Smoothing window width
     df_train = prep.concat_csi(prep.smooth(*prep.split_csi(df_train), window=window))
     df_test = prep.concat_csi(prep.smooth(*prep.split_csi(df_test), window=window))
 
@@ -72,7 +66,11 @@ if make_same:
     df_test = prep.make_same(df_test)
 
 # ---------------------------------------- CLASSIFICATION ----------
-clf_res = ml.fit_ffnn(df_train, df_test)
+clf_res = pd.concat([
+    #ml.fit_ffnn(df_train, df_test),
+    ml.fit_cnn(df_train, df_test),
+    ml.fit_sklearn(df_train, df_test),
+    ])
 
 
 # ---------------------------------------- RESULTS COMPARISON ----------

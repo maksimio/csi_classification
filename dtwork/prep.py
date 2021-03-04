@@ -57,9 +57,8 @@ def down(df, *df_lst):
 
 
 def smooth_savgol(df, *df_lst, win_width=9, polyorder=3):
-    '''Smoothes csi. Not recommended
-    apply to glued df. Filter applied
-    Savitsky-Golay'''
+    '''Smoothes csi. Not recommended apply to glued df. 
+    Filter applied Savitsky-Golay'''
     smoothed = savgol_filter(
         df.drop(columns='object_type'), win_width, polyorder)
     if len(df_lst) == 0:
@@ -87,23 +86,23 @@ def smooth(df, *df_lst, window=5):
         return smoothed_lst
 
 
-def normalize_phase(df, *df_lst):
-    print(df.drop(columns='object_type').abs())
+# def normalize_phase(df, *df_lst):
+#     print(df.drop(columns='object_type').abs())
 
-    res = df.drop(columns='object_type').T.diff().T.fillna(0)
-    print(res)
+#     res = df.drop(columns='object_type').T.diff().T.fillna(0)
+#     print(res)
 
-    a = 4
-    # df_data = np.mod(df.drop(columns='object_type'), 2 * np.pi)
-    # print(df_data)
-    # if len(df_lst) == 0:
-    #   return df_data.assign(object_type=df['object_type'].values)
-    # else:
-    #   lst = [df_data.assign(object_type=df['object_type'].values)]
-    #   for df in df_lst:
-    #     df_data = np.mod(df.drop(columns='object_type'), 2 * np.pi)
-    #     lst.append(df_data.assign(object_type=df['object_type'].values))
-    #   return lst
+#     a = 4
+#     # df_data = np.mod(df.drop(columns='object_type'), 2 * np.pi)
+#     # print(df_data)
+#     # if len(df_lst) == 0:
+#     #   return df_data.assign(object_type=df['object_type'].values)
+#     # else:
+#     #   lst = [df_data.assign(object_type=df['object_type'].values)]
+#     #   for df in df_lst:
+#     #     df_data = np.mod(df.drop(columns='object_type'), 2 * np.pi)
+#     #     lst.append(df_data.assign(object_type=df['object_type'].values))
+#     #   return lst
 
 
 # ---------- SCREENING ----------
@@ -162,7 +161,7 @@ def make_same(df):
         df_lst.append(df[df['object_type'] == o].head(min_len))
 
     df = pd.concat(df_lst)
-    return df.sample(frac=1).reset_index(drop=True)  # mixing df
+    return df.sample(frac=1).reset_index(drop=True)  # Mixing df
 
 
 

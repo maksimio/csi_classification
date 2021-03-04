@@ -23,8 +23,8 @@ import numpy as np
 def keras_prepare(df_train, df_test):
     x_train = df_train.drop('object_type', axis=1).to_numpy()
     x_test = df_test.drop('object_type', axis=1).to_numpy()
-    y_train = df_train['object_type'].to_numpy()
-    y_test = df_test['object_type'].to_numpy()
+    y_train = df_train['object_type'].copy().to_numpy()
+    y_test = df_test['object_type'].copy().to_numpy()
 
     # Convert to categorical:
     obj_lst = sorted(df_train['object_type'].unique())
@@ -66,7 +66,7 @@ def fit_sklearn(df_train, df_test):
         start_fit = time()
         classifiers[clf].fit(x_train, y_train)
         clf_res.loc[len(clf_res)] = [clf, round(classifiers[clf].score(x_test, y_test) * 100, 2), round(time() - start_fit, 2)]
-        print(clf, 'accuracy:', round(classifiers[clf].score(x_test, y_test) * 100, 2), '-->', round(time(), 2))
+        print(clf, 'accuracy:', round(classifiers[clf].score(x_test, y_test) * 100, 2), '-->', round(time() - start_fit, 2))
 
     return clf_res
 
@@ -74,24 +74,24 @@ def fit_sklearn(df_train, df_test):
 def fit_ffnn(df_train, df_test):
     x_train, x_test, y_train, y_test = keras_prepare(df_train, df_test)
 
-    batch_size = 50
+    batch_size = 20
     epochs = 50
     #x_train = x_train / 400
     #x_test = x_test / 400
 
     model = Sequential()
-    model.add(Dense(360, input_dim=x_train.shape[1], activation='relu'))
+    model.add(Dense(360, input_dim=x_train.shape[1], activation='hard_sigmoid'))
     model.add(Dense(len(df_train['object_type'].unique()), activation='softmax'))
     
     model.compile(loss='categorical_crossentropy', optimizer='Nadam', metrics=['accuracy'])
 
     start_fit = time()
-    model.fit(x_train, y_train, batch_size=batch_size, epochs=epochs, verbose=1, validation_split=0.1, shuffle=True)
+    model.fit(x_train, y_train, batch_size=batch_size, epochs=epochs, verbose=1, validation_split=0.1, use_multiprocessing=True)
     clf_res = pd.DataFrame(columns=('method name', 'accuracy', 'time'))
     clf_res.loc[len(clf_res)] = ['FFNN', round(model.evaluate(x_test, y_test, verbose=0)[1] * 100, 2), round(time() - start_fit, 2)]
 
-    print('keras FFNN', 'accuracy:', round(model.evaluate(x_test, y_test, verbose=0)[1] * 100, 2), '-->', round(time() - start_fit, 2))
-    model.save('results\\ffnn')
+    print('keras FFNN accuracy:', round(model.evaluate(x_test, y_test, verbose=0)[1] * 100, 2), '-->', round(time() - start_fit, 2))
+    #model.save('results\\ffnn')
     return clf_res
 
 def fit_cnn(df_train, df_test):
@@ -120,13 +120,13 @@ def fit_cnn(df_train, df_test):
     model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
 
     start_fit = time()
-    model.fit(x_train, y_train, batch_size=batch_size, epochs=epochs, validation_split=0.1, shuffle=True, verbose=1)
-    scores = model.evaluate(x_test, y_test, verbose=0)
-    print("Точность работы на тестовых данных: %.2f%%" % (scores[1] * 100))
-    print('keras FFNN', 'accuracy:', round(classifiers[clf].score(x_test, y_test) * 100, 2), '-->', round(time(), 2))
+    model.fit(x_train, y_train, batch_size=batch_size, epochs=epochs, validation_split=0.1, verbose=1, use_multiprocessing=True)
+    clf_res = pd.DataFrame(columns=('method name', 'accuracy', 'time'))
+    clf_res.loc[len(clf_res)] = ['CNN', round(model.evaluate(x_test, y_test, verbose=0)[1] * 100, 2), round(time() - start_fit, 2)]
 
-
-    model.save('results\\cnn3')
+    print('keras CNN accuracy:', round(model.evaluate(x_test, y_test, verbose=0)[1] * 100, 2), '-->', round(time() - start_fit, 2))
+    #model.save('results\\cnn3')
+    return clf_res
 
 
 def cnn_load(df_train, df_test):
