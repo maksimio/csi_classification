@@ -74,26 +74,31 @@ def fit_sklearn(df_train, df_test):
 def fit_ffnn(df_train, df_test):
     x_train, x_test, y_train, y_test = keras_prepare(df_train, df_test)
 
+    batch_size = 50
+    epochs = 50
+    #x_train = x_train / 400
+    #x_test = x_test / 400
+
     model = Sequential()
-    model.add(Dense(360, input_dim=x_train.shape[1], activation='hard_sigmoid'))
+    model.add(Dense(360, input_dim=x_train.shape[1], activation='relu'))
     model.add(Dense(len(df_train['object_type'].unique()), activation='softmax'))
+    
     model.compile(loss='categorical_crossentropy', optimizer='Nadam', metrics=['accuracy'])
 
     start_fit = time()
-    model.fit(x_train, y_train, batch_size=200, epochs=100, verbose=0, validation_split=0.1)
-    score = round(model.evaluate(x_test, y_test)[1] * 100, 2)
-    # clf_res.loc[len(clf_res)] = ['keras FFNN', score,
-    #                              round(time() - start_fit, 2)]
+    model.fit(x_train, y_train, batch_size=batch_size, epochs=epochs, verbose=1, validation_split=0.1, shuffle=True)
+    clf_res = pd.DataFrame(columns=('method name', 'accuracy', 'time'))
+    clf_res.loc[len(clf_res)] = ['FFNN', round(model.evaluate(x_test, y_test, verbose=0)[1] * 100, 2), round(time() - start_fit, 2)]
 
-    print('keras FFNN -->', round(time(), 2))
-    print('keras record:', )
-
+    print('keras FFNN', 'accuracy:', round(model.evaluate(x_test, y_test, verbose=0)[1] * 100, 2), '-->', round(time() - start_fit, 2))
+    model.save('results\\ffnn')
+    return clf_res
 
 def fit_cnn(df_train, df_test):
     x_train, x_test, y_train, y_test = keras_prepare(df_train, df_test)
 
     batch_size = 50
-    nb_epoch = 50
+    epochs = 50
     x_train = np.reshape(x_train, (-1, 4, 56, 1)) / 400
     x_test = np.reshape(x_test, (-1, 4, 56, 1)) / 400
 
@@ -113,10 +118,14 @@ def fit_cnn(df_train, df_test):
 
     sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
     model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
-    model.fit(x_train, y_train, batch_size=batch_size, epochs=nb_epoch, validation_split=0.1, shuffle=True, verbose=2)
+
+    start_fit = time()
+    model.fit(x_train, y_train, batch_size=batch_size, epochs=epochs, validation_split=0.1, shuffle=True, verbose=1)
     scores = model.evaluate(x_test, y_test, verbose=0)
     print("Точность работы на тестовых данных: %.2f%%" % (scores[1] * 100))
-    #print(model.summary())
+    print('keras FFNN', 'accuracy:', round(classifiers[clf].score(x_test, y_test) * 100, 2), '-->', round(time(), 2))
+
+
     model.save('results\\cnn3')
 
 

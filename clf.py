@@ -27,16 +27,14 @@ select_features = False    #
 use_keras = True          #
 learn_single_pathes = False   #
 
-make_smooth = False         # Smoothing df. You can set the width of smooth window in code below
+make_smooth = True         # Smoothing df. You can set the width of smooth window in code below
 make_reduce = False         # Reduce the size of df
 make_same = True            # Cutting packets to have the same sizes of all target values
 np.random.seed(42)          # Set seed for repeatability of results
 
-print('--> Imports complete -->', round(time() - time_start, 2))
+print('Imports complete -->', round(time() - time_start, 2))
 
 # ---------------------------------------- READING ----------
-dirs_to_groups = ['csi', 'homelocation', 'two place']
-#dirs_to_groups = ['csi', 'other', '2_objects', '250 cm']
 complex_part = 'abs'                                           # 'abs' or 'phase' will reading
 groups = {                                                     # Use regex. Only exist groups will be added
     '.*itch.*': 'kitchen',
@@ -48,7 +46,7 @@ groups = {                                                     # Use regex. Only
     '.*bottle.*': 'bottle'
 }
 
-main_path = path.join(*dirs_to_groups)
+main_path = path.join('csi', 'homelocation', 'two place')
 train_path = path.join(main_path, 'train')
 test_path = path.join(main_path, 'test')
 
@@ -61,7 +59,7 @@ print('Reading complete -->', round(time() - time_start, 2))
 
 # ---------------------------------------- PREPARATION ----------
 if make_smooth:
-    window = 2  # Smoothing window width
+    window = 5  # Smoothing window width
     df_train = prep.concat_csi(prep.smooth(*prep.split_csi(df_train), window=window))
     df_test = prep.concat_csi(prep.smooth(*prep.split_csi(df_test), window=window))
 
@@ -74,7 +72,8 @@ if make_same:
     df_test = prep.make_same(df_test)
 
 # ---------------------------------------- CLASSIFICATION ----------
-ml.fit_cnn(df_train, df_test)
+clf_res = ml.fit_ffnn(df_train, df_test)
+
 
 # ---------------------------------------- RESULTS COMPARISON ----------
 sorted_res = clf_res.sort_values(by='accuracy', ascending=False, ignore_index=True)
