@@ -125,6 +125,7 @@ def fit_cnn(df_train, df_test):
     clf_res.loc[len(clf_res)] = ['CNN', round(model.evaluate(x_test, y_test, verbose=0)[1] * 100, 2), round(time() - start_fit, 2)]
 
     print('keras CNN accuracy:', round(model.evaluate(x_test, y_test, verbose=0)[1] * 100, 2), '-->', round(time() - start_fit, 2))
+    print(model.summary())
     #model.save('results\\cnn3')
     return clf_res
 

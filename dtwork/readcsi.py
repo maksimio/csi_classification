@@ -66,8 +66,7 @@ def read_log_file(filename, object_type, payload_on, filter_payload=True):
                 cur += csi_matrix['csi_len']
 
             if csi_matrix['payload_len']:
-                payload = unpack(
-                    'B' * csi_matrix['payload_len'], f.read(csi_matrix['payload_len']))
+                payload = unpack('B' * csi_matrix['payload_len'], f.read(csi_matrix['payload_len']))
                 cur += csi_matrix['payload_len']
                 if payload_on:
                     csi_matrix['payload'] = payload

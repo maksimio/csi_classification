@@ -1,7 +1,7 @@
 '''This is the main file of project.'''
 # ---------------------------------------- MODULE IMPORTS ----------
 # Settings:
-make_smooth = True         # Smoothing df. You can set the width of smooth window in code below
+make_smooth = False         # Smoothing df. You can set the width of smooth window in code below
 make_reduce = False         # Reduce the size of df
 make_same = False           # Cutting packets to have the same sizes of all target values
 ignore_warnings = True     # For ignore all warnings, use it only if you sure
@@ -43,12 +43,12 @@ groups = {                                                     # Use regex. Only
 main_path = path.join('csi', 'homelocation', 'two place')
 train_path = path.join(main_path, 'train')
 test_path = path.join(main_path, 'test')
-
+ 
 df_train = prep.concat_csi(readcsi.get_csi_dfs(train_path, groups, complex_part))
 df_test = prep.concat_csi(readcsi.get_csi_dfs(test_path, groups, complex_part))
 
-print('Train packets number:\t', df_train.shape[0], 'Groups:', df_train['object_type'].unique())
-print('Test packets number:\t', df_test.shape[0], 'Groups:', df_test['object_type'].unique())
+print('Train packets number:\t', df_train.shape[0], 'Packets:', df_train['object_type'].unique())
+print('Test packets number:\t', df_test.shape[0], 'Packets:', df_test['object_type'].unique())
 print('Reading complete -->', round(time() - time_start, 2))
 
 # ---------------------------------------- PREPARATION ----------
@@ -65,11 +65,13 @@ if make_same:
     df_train = prep.make_same(df_train)
     df_test = prep.make_same(df_test)
 
+
+
 # ---------------------------------------- CLASSIFICATION ----------
 clf_res = pd.concat([
     #ml.fit_ffnn(df_train, df_test),
     ml.fit_cnn(df_train, df_test),
-    ml.fit_sklearn(df_train, df_test),
+    #ml.fit_sklearn(df_train, df_test),
     ])
 
 
