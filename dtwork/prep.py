@@ -70,16 +70,17 @@ def smooth_savgol(df, *df_lst, win_width=9, polyorder=3):
         return smoothed_lst
 
 
-def smooth(df, *df_lst, window=5):
-    '''Smoothes csi'''
-    smoothed = df.drop(columns='object_type').T.rolling(
-        window, min_periods=1).mean().T
+def smooth(df, *df_lst, window=5, win_type=None):
+    '''Smoothes csi. See about possible win_type's here:
+    https://docs.scipy.org/doc/scipy/reference/signal.windows.html#module-scipy.signal.windows
+    For example, use "hamming" win_type.'''
+    smoothed = df.drop(columns='object_type').T.rolling(window, min_periods=1, center=True, win_type=win_type).mean().T
     if len(df_lst) == 0:
         return smoothed.assign(object_type=df['object_type'].values)
     else:
         smoothed_lst = [smoothed.assign(object_type=df['object_type'].values)]
         for df in df_lst:
-            smoothed = df.drop(columns='object_type').T.rolling(5, min_periods=1).mean().T
+            smoothed = df.drop(columns='object_type').T.rolling(window, min_periods=1, center=True, win_type=win_type).mean().T
             smoothed_lst.append(smoothed.assign(object_type=df['object_type'].values))
         return smoothed_lst
 
@@ -118,9 +119,19 @@ def normalize_phase(df, *df_lst):
         return normalize_lst
 
 
-def difference(df):
-    pass
+def difference(df, *df_lst):
+    '''Convert df values to difference between them'''
 
+    diff = df.drop(['object_type'], axis=1).diff(axis=1).fillna(0)
+    if len(df_lst) == 0:
+        return diff.assign(object_type=df['object_type'].values)
+    else:
+        diff_lst = [smoothed.assign(object_type=df['object_type'].values)]
+        for df in df_lst:
+            diff = df.drop(['object_type'], axis=1).diff(axis=1).fillna(0)
+            diff_lst.append(diff.assign(object_type=df['object_type'].values))
+        return diff_lst
+        
 
 # ---------- SCREENING ----------
 def cut_csi(df, number, shuffle: bool = True):
@@ -185,7 +196,6 @@ def make_same(df):
 
 
 
-# df_train = df_train.drop(['object_type'], axis=1).diff(axis=1).fillna(0).assign(object_type=df_train['object_type'].values) # GOOD
 # df_test = df_test.drop(['object_type'], axis=1).diff(axis=1).fillna(0).assign(object_type=df_test['object_type'].values)    # GOOD
 
 

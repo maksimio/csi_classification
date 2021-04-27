@@ -1,7 +1,7 @@
 '''This is the main file of project.'''
 # ---------------------------------------- MODULE IMPORTS ----------
 # Settings:
-make_smooth = False         # Smoothing df. You can set the width of smooth window in code below
+make_smooth = True         # Smoothing df. You can set the width of smooth window in code below
 make_reduce = False         # Reduce the size of df
 make_same = True           # Cutting packets to have the same sizes of all target values
 ignore_warnings = True     # For ignore all warnings, use it only if you sure
@@ -26,7 +26,7 @@ import pandas as pd
 print('Imports complete -->', round(time() - time_start, 2))
 
 # ---------------------------------------- READING ----------
-complex_part = 'phase'                                           # 'abs' or 'phase' will reading
+complex_part = 'abs'                                           # 'abs' or 'phase' will reading
 groups = {                                                     # Use regex. Only exist groups will be added
     '.*itch.*': 'kitchen',
     'room.*': 'room',
@@ -50,9 +50,10 @@ print('Reading complete -->', round(time() - time_start, 2))
 
 # ---------------------------------------- PREPARATION ----------
 if make_smooth:
-    window = 2  # Smoothing window width
-    df_train = prep.concat_csi(prep.smooth(*prep.split_csi(df_train), window=window))
-    df_test = prep.concat_csi(prep.smooth(*prep.split_csi(df_test), window=window))
+    window = 10  # Smoothing window width
+    win_type = 'hamming'
+    df_train = prep.concat_csi(prep.smooth(*prep.split_csi(df_train), window=window, win_type=win_type))
+    df_test = prep.concat_csi(prep.smooth(*prep.split_csi(df_test), window=window, win_type=win_type))
 
 if make_reduce:
     df_train = prep.decimate_one(df_train, 5, 7, 9, 11, 13)
@@ -63,12 +64,15 @@ if make_same:
     df_test = prep.make_same(df_test)
 
 print(time() - time_start)
-norm = prep.concat_csi(prep.normalize_phase(*prep.split_csi(df_train.head(150))))
+df_train = prep.concat_csi(prep.normalize_phase(*prep.split_csi(df_train)))
+df_test = prep.concat_csi(prep.normalize_phase(*prep.split_csi(df_test)))
+# norm = prep.concat_csi(prep.normalize_phase(*prep.split_csi(df_train.head(100))))
 print(time() - time_start)
 
-plot.csi_plot_types(df_train.head(180))
-plot.csi_plot_types(norm)
-exit()
+# diff = 
+
+# plot.csi_plot_types(df_train.head(10))
+# exit()
 
 # ---------------------------------------- CLASSIFICATION ----------
 clf_res = pd.concat([
