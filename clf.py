@@ -1,7 +1,7 @@
 '''This is the main file of project.'''
 # ---------------------------------------- MODULE IMPORTS ----------
 # Settings:
-make_smooth = True         # Smoothing df. You can set the width of smooth window in code below
+make_smooth = False         # Smoothing df. You can set the width of smooth window in code below
 make_reduce = False         # Reduce the size of df
 make_same = True           # Cutting packets to have the same sizes of all target values
 ignore_warnings = True     # For ignore all warnings, use it only if you sure
@@ -26,7 +26,7 @@ import pandas as pd
 print('Imports complete -->', round(time() - time_start, 2))
 
 # ---------------------------------------- READING ----------
-complex_part = 'abs'                                           # 'abs' or 'phase' will reading
+complex_part = 'phase'                                           # 'abs' or 'phase' will reading
 groups = {                                                     # Use regex. Only exist groups will be added
     '.*itch.*': 'kitchen',
     'room.*': 'room',
@@ -66,17 +66,17 @@ if make_same:
 print(time() - time_start)
 df_train = prep.concat_csi(prep.normalize_phase(*prep.split_csi(df_train)))
 df_test = prep.concat_csi(prep.normalize_phase(*prep.split_csi(df_test)))
-# norm = prep.concat_csi(prep.normalize_phase(*prep.split_csi(df_train.head(100))))
+df_train = prep.concat_csi(prep.difference(*prep.split_csi(df_train)))
+df_test = prep.concat_csi(prep.difference(*prep.split_csi(df_test)))
 print(time() - time_start)
-
-# diff = 
-
-# plot.csi_plot_types(df_train.head(10))
+# norm = prep.concat_csi(prep.normalize_phase(*prep.split_csi(df_train.head(100))))
+# norm = prep.concat_csi(prep.difference(*prep.split_csi(norm.head(100))))
+# plot.csi_plot_types(norm.head(15))
 # exit()
 
 # ---------------------------------------- CLASSIFICATION ----------
 clf_res = pd.concat([
-    ml.fit_ffnn(df_train, df_test),
+    # ml.fit_ffnn(df_train, df_test),
     ml.fit_cnn(df_train, df_test),
     ml.fit_sklearn(df_train, df_test),
     ])

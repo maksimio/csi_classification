@@ -13,7 +13,7 @@ def split_csi(big_df, num_tones=56):
     in every df. The opposite of concat_csi (...).
     Accepts Big_df in which are written to a string
     num_tones * 4 = 224 CSI subcarriers'''
-    
+
     df_lst = []
     for k in range(4):
         one_df = big_df[[i+k*num_tones for i in range(0, num_tones)]]
@@ -131,7 +131,7 @@ def difference(df, *df_lst):
     if len(df_lst) == 0:
         return diff.assign(object_type=df['object_type'].values)
     else:
-        diff_lst = [smoothed.assign(object_type=df['object_type'].values)]
+        diff_lst = [diff.assign(object_type=df['object_type'].values)]
         for df in df_lst:
             diff = df.drop(['object_type'], axis=1).diff(axis=1).fillna(0)
             diff_lst.append(diff.assign(object_type=df['object_type'].values))
