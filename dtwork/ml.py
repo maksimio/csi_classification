@@ -8,7 +8,6 @@ from sklearn.linear_model import Perceptron, SGDClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.tree import DecisionTreeClassifier
 
-import keras
 from keras import utils
 from keras.models import Sequential
 from keras.layers import Dense, Flatten, Activation, Dropout
@@ -18,7 +17,7 @@ from keras.optimizers import SGD
 from time import time
 import pandas as pd
 import numpy as np
-#from matplotlib import pyplot as plt
+
 
 def keras_prepare(df_train, df_test):
     x_train = df_train.drop('object_type', axis=1).to_numpy()
@@ -126,7 +125,6 @@ def fit_cnn(df_train, df_test):
 
     print('keras CNN accuracy:', round(model.evaluate(x_test, y_test, verbose=0)[1] * 100, 2), '-->', round(time() - start_fit, 2))
     print(model.summary())
-    #model.save('results\\cnn3')
     return clf_res
 
 

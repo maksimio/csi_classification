@@ -8,8 +8,6 @@ from scipy.signal import savgol_filter
 from matplotlib import pyplot as plt
 
 # ---------- GROUPING ----------
-
-
 def split_csi(big_df, num_tones=56):
     '''Returns an array of CSI df, by num_tones amplitudes
     in every df. The opposite of concat_csi (...).
@@ -86,23 +84,42 @@ def smooth(df, *df_lst, window=5):
         return smoothed_lst
 
 
-# def normalize_phase(df, *df_lst):
-#     print(df.drop(columns='object_type').abs())
+def normalize_phase(df, *df_lst):
+    '''Remove jumps when phases crossing 360 degrees'''
+    df_new = df.copy()
+    for i in range(df_new.shape[0]):
+        shift = 0
+        for j in range(df_new.shape[1] - 1):
+            df.loc[i, j] = df_new.loc[i, j] + shift
+            if j == 55:
+                break
+            if df_new.loc[i, j] - df_new.loc[i, j + 1] > 3:
+                shift += np.pi * 2
+            elif df_new.loc[i, j + 1] - df_new.loc[i, j] > 3:
+                shift -= np.pi * 2
+    
+    if len(df_lst) == 0:
+        return df
+    else:
+        normalize_lst = [df]
+        for df in df_lst:
+            df_new = df.copy()
+            for i in range(df_new.shape[0]):
+                shift = 0
+                for j in range(df_new.shape[1] - 1):
+                    df.loc[i, j] = df_new.loc[i, j] + shift
+                    if j == 55:
+                        break
+                    if df_new.loc[i, j] - df_new.loc[i, j + 1] > 3:
+                        shift += np.pi * 2
+                    elif df_new.loc[i, j + 1] - df_new.loc[i, j] > 3:
+                        shift -= np.pi * 2
+            normalize_lst.append(df)
+        return normalize_lst
 
-#     res = df.drop(columns='object_type').T.diff().T.fillna(0)
-#     print(res)
 
-#     a = 4
-#     # df_data = np.mod(df.drop(columns='object_type'), 2 * np.pi)
-#     # print(df_data)
-#     # if len(df_lst) == 0:
-#     #   return df_data.assign(object_type=df['object_type'].values)
-#     # else:
-#     #   lst = [df_data.assign(object_type=df['object_type'].values)]
-#     #   for df in df_lst:
-#     #     df_data = np.mod(df.drop(columns='object_type'), 2 * np.pi)
-#     #     lst.append(df_data.assign(object_type=df['object_type'].values))
-#     #   return lst
+def difference(df):
+    pass
 
 
 # ---------- SCREENING ----------

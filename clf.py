@@ -3,7 +3,7 @@
 # Settings:
 make_smooth = False         # Smoothing df. You can set the width of smooth window in code below
 make_reduce = False         # Reduce the size of df
-make_same = False           # Cutting packets to have the same sizes of all target values
+make_same = True           # Cutting packets to have the same sizes of all target values
 ignore_warnings = True     # For ignore all warnings, use it only if you sure
 
 if ignore_warnings:
@@ -14,7 +14,6 @@ if ignore_warnings:
 from time import time
 time_start = time()
 
-import matplotlib.pyplot as plt
 from os import path
 from dtwork import features
 from dtwork import readcsi
@@ -23,13 +22,11 @@ from dtwork import plot
 from dtwork import ml
 
 import pandas as pd
-import numpy as np
 
-np.random.seed(42) # Set seed for repeatability of results
 print('Imports complete -->', round(time() - time_start, 2))
 
 # ---------------------------------------- READING ----------
-complex_part = 'abs'                                           # 'abs' or 'phase' will reading
+complex_part = 'phase'                                           # 'abs' or 'phase' will reading
 groups = {                                                     # Use regex. Only exist groups will be added
     '.*itch.*': 'kitchen',
     'room.*': 'room',
@@ -65,15 +62,20 @@ if make_same:
     df_train = prep.make_same(df_train)
     df_test = prep.make_same(df_test)
 
+print(time() - time_start)
+norm = prep.concat_csi(prep.normalize_phase(*prep.split_csi(df_train.head(150))))
+print(time() - time_start)
 
+plot.csi_plot_types(df_train.head(180))
+plot.csi_plot_types(norm)
+exit()
 
 # ---------------------------------------- CLASSIFICATION ----------
 clf_res = pd.concat([
-    #ml.fit_ffnn(df_train, df_test),
+    # ml.fit_ffnn(df_train, df_test),
     ml.fit_cnn(df_train, df_test),
-    #ml.fit_sklearn(df_train, df_test),
+    # ml.fit_sklearn(df_train, df_test),
     ])
-
 
 # ---------------------------------------- RESULTS COMPARISON ----------
 sorted_res = clf_res.sort_values(by='accuracy', ascending=False, ignore_index=True)
