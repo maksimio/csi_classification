@@ -76,9 +76,9 @@ print(time() - time_start)
 
 # ---------------------------------------- CLASSIFICATION ----------
 clf_res = pd.concat([
-    # ml.fit_ffnn(df_train, df_test),
+    ml.fit_ffnn(df_train, df_test),
     ml.fit_cnn(df_train, df_test),
-    # ml.fit_sklearn(df_train, df_test),
+    ml.fit_sklearn(df_train, df_test),
     ])
 
 # ---------------------------------------- RESULTS COMPARISON ----------

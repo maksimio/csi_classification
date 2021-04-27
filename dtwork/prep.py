@@ -13,6 +13,7 @@ def split_csi(big_df, num_tones=56):
     in every df. The opposite of concat_csi (...).
     Accepts Big_df in which are written to a string
     num_tones * 4 = 224 CSI subcarriers'''
+    
     df_lst = []
     for k in range(4):
         one_df = big_df[[i+k*num_tones for i in range(0, num_tones)]]
@@ -25,6 +26,7 @@ def split_csi(big_df, num_tones=56):
 def concat_csi(df_lst):
     '''Returns the generic DataFrame in which are written
     row 56 * 4 = 224 CSI subcarriers'''
+
     type_ds = df_lst[0]['object_type']
     for i in range(len(df_lst)):
         df_lst[i] = df_lst[i].drop(['object_type'], axis=1)
@@ -38,6 +40,7 @@ def down(df, *df_lst):
     '''Lowers csi amplitudes by subtracting from each packet
     minimum value. It is recommended to use individually.
     to packets from each path, and not to the glued df'''
+
     object_type = df['object_type']
     min_col = df.drop(['object_type'], axis=1).min(axis=1)
     df_down = df.drop(['object_type'], axis=1).sub(min_col, axis=0)
@@ -57,8 +60,8 @@ def down(df, *df_lst):
 def smooth_savgol(df, *df_lst, win_width=9, polyorder=3):
     '''Smoothes csi. Not recommended apply to glued df. 
     Filter applied Savitsky-Golay'''
-    smoothed = savgol_filter(
-        df.drop(columns='object_type'), win_width, polyorder)
+
+    smoothed = savgol_filter(df.drop(columns='object_type'), win_width, polyorder)
     if len(df_lst) == 0:
         return pd.DataFrame(smoothed).assign(object_type=df['object_type'].values)
     else:
@@ -74,6 +77,7 @@ def smooth(df, *df_lst, window=5, win_type=None):
     '''Smoothes csi. See about possible win_type's here:
     https://docs.scipy.org/doc/scipy/reference/signal.windows.html#module-scipy.signal.windows
     For example, use "hamming" win_type.'''
+
     smoothed = df.drop(columns='object_type').T.rolling(window, min_periods=1, center=True, win_type=win_type).mean().T
     if len(df_lst) == 0:
         return smoothed.assign(object_type=df['object_type'].values)
@@ -86,7 +90,8 @@ def smooth(df, *df_lst, window=5, win_type=None):
 
 
 def normalize_phase(df, *df_lst):
-    '''Remove jumps when phases crossing 360 degrees'''
+    '''Remove jumps when phases crossing [-pi; pi]'''
+
     df_new = df.copy()
     for i in range(df_new.shape[0]):
         shift = 0
@@ -131,7 +136,7 @@ def difference(df, *df_lst):
             diff = df.drop(['object_type'], axis=1).diff(axis=1).fillna(0)
             diff_lst.append(diff.assign(object_type=df['object_type'].values))
         return diff_lst
-        
+
 
 # ---------- SCREENING ----------
 def cut_csi(df, number, shuffle: bool = True):
@@ -139,6 +144,7 @@ def cut_csi(df, number, shuffle: bool = True):
     number of packets for each object. Shuffle -
     Choose packages randomly. Only for
     glued df with shuffle = True!'''
+
     df_lst = []
     object_types = df['object_type'].unique()
     for obj_type in object_types:
@@ -155,6 +161,7 @@ def decimate_one(df, k, *k_lst):
     arguments. Multiple lines may intersect, their repetitions
     will be deleted before drop. Thus, when transmitting
     (df, 2, 2) to the function, 1/2 will remain from the original df.'''
+
     drop_index_lst = [i for i in range(0, df.shape[0], k)]
     for k in k_lst:
         drop_index_lst += [i for i in range(0, df.shape[0], k)]
@@ -166,6 +173,7 @@ def decimate_every(df, k, *k_lst):
     '''Deletes every kth row. Every time after removal
       rows from df in it are reset indices. Thus, when
       passing (df, 2, 2) to the function, 1/4 will remain from the original df.'''
+
     drop_index_lst = [i for i in range(0, df.shape[0], k)]
     df = df.drop(drop_index_lst).reset_index(drop=True)
 
@@ -179,6 +187,7 @@ def decimate_every(df, k, *k_lst):
 def make_same(df):
     '''Cutting packets to have the same sizes
     of all target values and mixing rows of df.'''
+
     o_types = pd.unique(df['object_type']).tolist()
     min_len = 100000000000
     df_lst = []
@@ -190,12 +199,3 @@ def make_same(df):
 
     df = pd.concat(df_lst)
     return df.sample(frac=1).reset_index(drop=True)  # Mixing df
-
-
-
-
-
-
-# df_test = df_test.drop(['object_type'], axis=1).diff(axis=1).fillna(0).assign(object_type=df_test['object_type'].values)    # GOOD
-
-
