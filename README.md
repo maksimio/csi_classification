@@ -9,7 +9,7 @@ When transmitting a Wi-Fi signal, the receiver can receive **Channel State Infor
 
 I mainly use amplitudes for research, as they provide higher machine learning accuracy results. Since the routers used have antennas, we have 4 signal paths.
 
-![](./img/paths.png)
+![](./img/paths.png | width=100)
 
 
 
