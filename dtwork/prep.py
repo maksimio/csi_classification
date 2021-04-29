@@ -97,7 +97,7 @@ def normalize_phase(df, *df_lst):
         shift = 0
         for j in range(df_new.shape[1] - 1):
             df.loc[i, j] = df_new.loc[i, j] + shift
-            if j == 55:
+            if j == 55: #TODO: !
                 break
             if df_new.loc[i, j] - df_new.loc[i, j + 1] > 3:
                 shift += np.pi * 2
