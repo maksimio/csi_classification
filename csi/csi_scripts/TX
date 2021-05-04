@@ -1,0 +1,5 @@
+#!/bin/sh
+
+INTERFACE="wlan0"
+MAC_ADDR="14:CC:20:FC:1A:88"
+sendData $INTERFACE $MAC_ADDR ${1}

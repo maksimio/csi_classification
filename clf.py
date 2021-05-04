@@ -3,7 +3,7 @@
 # Settings:
 make_smooth = False         # Smoothing df. You can set the width of smooth window in code below
 make_reduce = False         # Reduce the size of df
-make_same = True           # Cutting packets to have the same sizes of all target values
+make_same = False           # Cutting packets to have the same sizes of all target values
 ignore_warnings = True     # For ignore all warnings, use it only if you sure
 
 if ignore_warnings:
@@ -63,16 +63,18 @@ if make_same:
     df_train = prep.make_same(df_train)
     df_test = prep.make_same(df_test)
 
-print(time() - time_start)
-df_train = prep.concat_csi(prep.normalize_phase(*prep.split_csi(df_train)))
-df_test = prep.concat_csi(prep.normalize_phase(*prep.split_csi(df_test)))
-df_train = prep.concat_csi(prep.difference(*prep.split_csi(df_train)))
-df_test = prep.concat_csi(prep.difference(*prep.split_csi(df_test)))
-print(time() - time_start)
+start_norm = time()
+# df_train = prep.concat_csi(prep.normalize_phase(*prep.split_csi(df_train)))
+# df_test = prep.concat_csi(prep.normalize_phase(*prep.split_csi(df_test)))
+# df_train = prep.concat_csi(prep.difference(*prep.split_csi(df_train)))
+# df_test = prep.concat_csi(prep.difference(*prep.split_csi(df_test)))
+norm = prep.concat_csi(prep.normalize_phase_2(*prep.split_csi(df_train.head(100))))
+
+print('--- Normalization time: ', time() - start_norm)
 # norm = prep.concat_csi(prep.normalize_phase(*prep.split_csi(df_train.head(100))))
 # norm = prep.concat_csi(prep.difference(*prep.split_csi(norm.head(100))))
 # plot.csi_plot_types(norm.head(15))
-# exit()
+exit()
 
 # ---------------------------------------- CLASSIFICATION ----------
 clf_res = pd.concat([

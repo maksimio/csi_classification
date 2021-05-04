@@ -1,0 +1,13 @@
+#!/bin/sh
+
+recvCSI ${1} &
+PID=$!
+
+while true
+do
+	sleep 1
+	if [ $(du -k ${1} | grep -Eo "^[0-9]*") -gt ${2} ]; then
+		kill -9 $PID
+		break
+	fi
+done

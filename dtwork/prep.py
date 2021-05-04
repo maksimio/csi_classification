@@ -124,6 +124,36 @@ def normalize_phase(df, *df_lst):
         return normalize_lst
 
 
+def normalize_phase_2(df, *df_lst):
+    '''Remove jumps when phases crossing [-pi; pi]'''
+    df_target = df['object_type']
+    df.drop('object_type', axis=1, inplace=True)
+
+    df_diff = df.diff(axis=1).fillna(0)
+    df_diff[(df_diff < np.pi * 2 - 1) & (df_diff > -np.pi * 2 + 1)] = 0
+
+    for column in df:
+        df.iloc[:, column:][df_diff[column] > 0] -= np.pi * 2
+        df.iloc[:, column:][df_diff[column] < 0] += np.pi * 2
+    
+    if len(df_lst) == 0:
+        return df.assign(object_type=df_target.values)
+
+    normalize_lst = [df.assign(object_type=df_target.values)]
+    for df in df_lst:
+        df.drop('object_type', axis=1, inplace=True)
+        df_diff = df.diff(axis=1).fillna(0)
+        df_diff[(df_diff < np.pi * 2 - 1) & (df_diff > -np.pi * 2 + 1)] = 0
+        
+        for column in df:
+            df.iloc[:, column:][df_diff[column] > 0] -= np.pi * 2
+            df.iloc[:, column:][df_diff[column] < 0] += np.pi * 2
+        normalize_lst.append(df.assign(object_type=df_target.values))
+    
+    return normalize_lst
+
+
+
 def difference(df, *df_lst):
     '''Convert df values to difference between them'''
 
