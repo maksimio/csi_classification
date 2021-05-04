@@ -126,6 +126,7 @@ def normalize_phase(df, *df_lst):
 
 def normalize_phase_2(df, *df_lst):
     '''Remove jumps when phases crossing [-pi; pi]'''
+    
     df_target = df['object_type']
     df.drop('object_type', axis=1, inplace=True)
 
