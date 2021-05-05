@@ -36,7 +36,8 @@ def concat_csi(df_lst):
 
 
 def clever_apply(big_df, func, *args):
-    '''Split df, then apply function to every 
+    ''' Experimental. Don`t use.
+    Split df, then apply function to every 
     df for single signal path and concatenate them in
     one big df'''
 
