@@ -93,10 +93,6 @@ for _ in range(settings['diff_order']):
     plot.csi_plot_types(df_train.head(15))
 
 
-df_train = features.mean(df_train)
-print(df_train['mean'])
-exit()
-
 # ---------------------------------------- CLASSIFICATION ----------
 clf_res = pd.concat([
     # ml.fit_ffnn(df_train, df_test),
