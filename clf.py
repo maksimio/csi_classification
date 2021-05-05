@@ -7,7 +7,8 @@ settings = {
     'make_same': True,           # Cutting packets to have the same sizes of all target values
     'normalize': True,           # Only for phase! Remove phase jumps
     'diff_order': 0,             # Order of derivative (usual difference). 0 means without that option
-    'ignore_warnings': True     # For ignore all warnings, use it only if you sure. It speed up the code 
+    'ignore_warnings': True,     # For ignore all warnings, use it only if you sure. It speed up the code 
+    'concat_edge': False          # Connects the edges of a dataset
 }
 
 if settings['ignore_warnings']:
@@ -29,7 +30,6 @@ import pandas as pd
 
 if settings['ignore_warnings']:
     pd.options.mode.chained_assignment = None
-
 
 print('Imports complete -->', round(time() - time_start, 2))
 
@@ -87,11 +87,17 @@ if settings['make_same']:
     df_train = prep.make_same(df_train)
     df_test = prep.make_same(df_test)
 
+if settings['concat_edge']:
+    df_train = prep.concat_edge(df_train)
+    df_test = prep.concat_edge(df_test)
+
 for _ in range(settings['diff_order']):
     df_train = prep.concat_csi(prep.difference(*prep.split_csi(df_train)))
     df_test = prep.concat_csi(prep.difference(*prep.split_csi(df_test)))
-    plot.csi_plot_types(df_train.head(15))
 
+# df_train = prep.concat_edge(df_train)
+# plot.csi_plot_types(df_train.head(10))
+# exit()
 
 # ---------------------------------------- CLASSIFICATION ----------
 clf_res = pd.concat([

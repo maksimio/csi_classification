@@ -178,6 +178,31 @@ def difference(df, *df_lst):
         return diff_lst
 
 
+def concat_edge(big_df, num_tones=56):
+    '''Connects the edges of a dataset.
+    Method is experimental only for 4 paths and 56 num_tones'''
+
+    target = big_df['object_type']
+    big_df = big_df.drop('object_type', axis=1)
+
+    diff_df = big_df[55] - big_df[56]
+    concat = pd.concat([diff_df for i in range(56)], axis=1)
+    concat.columns = [i for i in range(56, 112)]
+    big_df.iloc[:, 56:112] += concat
+
+    diff_df = big_df[111] - big_df[112]
+    concat = pd.concat([diff_df for i in range(56)], axis=1)
+    concat.columns = [i for i in range(112, 168)]
+    big_df.iloc[:, 112:168] += concat
+
+    diff_df = big_df[167] - big_df[168]
+    concat = pd.concat([diff_df for i in range(56)], axis=1)
+    concat.columns = [i for i in range(168, 224)]
+    big_df.iloc[:, 168:224] += concat
+
+    return big_df.assign(object_type=target.values)
+    
+
 # ---------- SCREENING ----------
 def cut_csi(df, number, shuffle: bool = True):
     '''Returns the dataframe in which is left
