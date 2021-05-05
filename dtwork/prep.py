@@ -35,6 +35,14 @@ def concat_csi(df_lst):
     return big_df.assign(object_type=type_ds)
 
 
+def clever_apply(big_df, func, *args):
+    '''Split df, then apply function to every 
+    df for single signal path and concatenate them in
+    one big df'''
+
+    return concat_csi([func(df, *args) for df in split_csi(big_df)])
+
+
 # ---------- CHANGE ----------
 def down(df, *df_lst):
     '''Lowers csi amplitudes by subtracting from each packet
