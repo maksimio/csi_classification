@@ -90,7 +90,8 @@ def smooth(df, *df_lst, window=5, win_type=None):
 
 
 def normalize_phase_old(df, *df_lst):
-    '''Remove jumps when phases crossing [-pi; pi]'''
+    '''Deprecated - too slow. Use "normalize_phase".
+    Remove jumps when phases crossing [-pi; pi]'''
 
     df_new = df.copy()
     for i in range(df_new.shape[0]):
@@ -154,7 +155,6 @@ def normalize_phase(df, *df_lst):
     return normalize_lst
 
 
-
 def difference(df, *df_lst):
     '''Convert df values to difference between them'''
 
@@ -202,14 +202,13 @@ def decimate_one(df, k, *k_lst):
 
 def decimate_every(df, k, *k_lst):
     '''Deletes every kth row. Every time after removal
-      rows from df in it are reset indices. Thus, when
-      passing (df, 2, 2) to the function, 1/4 will remain from the original df.'''
+    rows from df in it are reset indices. Thus, when
+    passing (df, 2, 2) to the function, 1/4 will remain from the original df.'''
 
     drop_index_lst = [i for i in range(0, df.shape[0], k)]
     df = df.drop(drop_index_lst).reset_index(drop=True)
 
     for k in k_lst:
-        # ? Что делает k в range(). Правильно ли работает эта функция
         drop_index_lst = [i for i in range(0, df.shape[0], k)]
         df = df.drop(drop_index_lst).reset_index(drop=True)
     return df

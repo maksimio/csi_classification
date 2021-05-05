@@ -12,7 +12,7 @@ settings = {
 
 if settings['ignore_warnings']:
     import warnings, os
-    warnings.filterwarnings("ignore", category=FutureWarning)
+    warnings.filterwarnings('ignore', category=FutureWarning)
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 
 from time import time
@@ -92,6 +92,11 @@ for _ in range(settings['diff_order']):
     df_test = prep.concat_csi(prep.difference(*prep.split_csi(df_test)))
     plot.csi_plot_types(df_train.head(15))
 
+
+df_train = features.mean(df_train)
+print(df_train['mean'])
+exit()
+
 # ---------------------------------------- CLASSIFICATION ----------
 clf_res = pd.concat([
     # ml.fit_ffnn(df_train, df_test),
@@ -102,7 +107,11 @@ clf_res = pd.concat([
 # ---------------------------------------- RESULTS COMPARISON ----------
 sorted_res = clf_res.sort_values(by='method name', ascending=True, ignore_index=True)
 
-print('\nClassification results:\n', sorted_res)
+print('\nClassification results:\n' + str(sorted_res))
 sorted_res.to_csv('results\\ml_results.csv', index=False)
 
 print('Finish -->', round(time() - time_start, 2))
+
+
+# TODO: df_test = prep.concat_csi(prep.difference(*prep.split_csi(df_test)))
+# изменить подход с такого на [prep.difference(df) for df in prep.split_csi(df_test)]
