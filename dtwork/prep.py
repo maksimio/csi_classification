@@ -89,7 +89,7 @@ def smooth(df, *df_lst, window=5, win_type=None):
         return smoothed_lst
 
 
-def normalize_phase(df, *df_lst):
+def normalize_phase_old(df, *df_lst):
     '''Remove jumps when phases crossing [-pi; pi]'''
 
     df_new = df.copy()
@@ -124,14 +124,14 @@ def normalize_phase(df, *df_lst):
         return normalize_lst
 
 
-def normalize_phase_2(df, *df_lst):
-    '''Remove jumps when phases crossing [-pi; pi]'''
+def normalize_phase(df, *df_lst):
+    '''Remove jumps when phases crossing [-pi; pi] in radians'''
     
     df_target = df['object_type']
     df.drop('object_type', axis=1, inplace=True)
 
     df_diff = df.diff(axis=1).fillna(0)
-    df_diff[(df_diff < np.pi * 2 - 1) & (df_diff > -np.pi * 2 + 1)] = 0
+    df_diff[(df_diff < np.pi * 2 - 0.5) & (df_diff > -np.pi * 2 + 0.5)] = 0
 
     for column in df:
         df.iloc[:, column:][df_diff[column] > 0] -= np.pi * 2
