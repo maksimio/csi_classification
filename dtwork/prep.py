@@ -98,42 +98,6 @@ def smooth(df, *df_lst, window=5, win_type=None):
         return smoothed_lst
 
 
-def normalize_phase_old(df, *df_lst):
-    '''Deprecated - too slow. Use "normalize_phase".
-    Remove jumps when phases crossing [-pi; pi]'''
-
-    df_new = df.copy()
-    for i in range(df_new.shape[0]):
-        shift = 0
-        for j in range(df_new.shape[1] - 1):
-            df.loc[i, j] = df_new.loc[i, j] + shift
-            if j == 55: #TODO: !
-                break
-            if df_new.loc[i, j] - df_new.loc[i, j + 1] > 3:
-                shift += np.pi * 2
-            elif df_new.loc[i, j + 1] - df_new.loc[i, j] > 3:
-                shift -= np.pi * 2
-    
-    if len(df_lst) == 0:
-        return df
-    else:
-        normalize_lst = [df]
-        for df in df_lst:
-            df_new = df.copy()
-            for i in range(df_new.shape[0]):
-                shift = 0
-                for j in range(df_new.shape[1] - 1):
-                    df.loc[i, j] = df_new.loc[i, j] + shift
-                    if j == 55:
-                        break
-                    if df_new.loc[i, j] - df_new.loc[i, j + 1] > 3:
-                        shift += np.pi * 2
-                    elif df_new.loc[i, j + 1] - df_new.loc[i, j] > 3:
-                        shift -= np.pi * 2
-            normalize_lst.append(df)
-        return normalize_lst
-
-
 def normalize_phase(df, *df_lst):
     '''Remove jumps when phases crossing [-pi; pi] in radians'''
     

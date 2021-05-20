@@ -2,10 +2,10 @@
 # ---------------------------------------- MODULE IMPORTS ----------
 # Settings:
 settings = {
-    'make_smooth': True,         # Smoothing df. You can set the width of smooth window in code below
+    'make_smooth': False,         # Smoothing df. You can set the width of smooth window in code below
     'make_reduce': False,         # Reduce the size of df
-    'make_same': True,           # Cutting packets to have the same sizes of all target values
-    'normalize': True,           # Only for phase! Remove phase jumps
+    'make_same': False,           # Cutting packets to have the same sizes of all target values
+    'normalize': False,           # Only for phase! Remove phase jumps
     'diff_order': 0,             # Order of derivative (usual difference). 0 means without that option
     'ignore_warnings': True,     # For ignore all warnings, use it only if you sure. It speed up the code 
     'concat_edge': False          # Connects the edges of a dataset
@@ -55,6 +55,7 @@ groups = {                                                     # Use regex. Only
 
 main_path = path.join('csi', 'use_in_paper', '4_objects')
 # main_path = path.join('csi', 'homelocation', 'two place')
+
 train_path = path.join(main_path, 'train')
 test_path = path.join(main_path, 'test')
  
@@ -66,6 +67,10 @@ print('Test packets number:\t', df_test.shape[0], 'Packets:', df_test['object_ty
 print('Reading complete -->', round(time() - time_start, 2))
 
 # ---------------------------------------- PREPARATION ----------
+if settings['make_same']:
+    df_train = prep.make_same(df_train)
+    df_test = prep.make_same(df_test)
+
 if settings['normalize']:
     if complex_part == 'phase':
         df_train = prep.concat_csi(prep.normalize_phase(*prep.split_csi(df_train)))
@@ -83,10 +88,6 @@ if settings['make_reduce']:
     df_train = prep.decimate_one(df_train, 5, 7, 9, 11, 13)
     print('New df_train size:', df_train.shape[0])
 
-if settings['make_same']:
-    df_train = prep.make_same(df_train)
-    df_test = prep.make_same(df_test)
-
 if settings['concat_edge']:
     df_train = prep.concat_edge(df_train)
     df_test = prep.concat_edge(df_test)
@@ -95,9 +96,6 @@ for _ in range(settings['diff_order']):
     df_train = prep.concat_csi(prep.difference(*prep.split_csi(df_train)))
     df_test = prep.concat_csi(prep.difference(*prep.split_csi(df_test)))
 
-# df_train = prep.concat_edge(df_train)
-# plot.csi_plot_types(df_train.head(10))
-# exit()
 
 # ---------------------------------------- CLASSIFICATION ----------
 clf_res = pd.concat([
@@ -117,3 +115,4 @@ print('Finish -->', round(time() - time_start, 2))
 
 # TODO: df_test = prep.concat_csi(prep.difference(*prep.split_csi(df_test)))
 # изменить подход с такого на [prep.difference(df) for df in prep.split_csi(df_test)]
+# TODO: сделать нормальный порядок if
