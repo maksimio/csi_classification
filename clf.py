@@ -1,12 +1,15 @@
 '''This is the main file of project.'''
 # ---------------------------------------- MODULE IMPORTS ----------
 # Settings:
+from numpy.lib.twodim_base import triu_indices
+
+
 settings = {
     'make_smooth': False,         # Smoothing df. You can set the width of smooth window in code below
     'make_reduce': False,         # Reduce the size of df
-    'make_same': False,           # Cutting packets to have the same sizes of all target values
-    'normalize': False,           # Only for phase! Remove phase jumps
-    'diff_order': 0,             # Order of derivative (usual difference). 0 means without that option
+    'make_same': True,           # Cutting packets to have the same sizes of all target values
+    'normalize': True,           # Only for phase! Remove phase jumps
+    'diff_order': 1,             # Order of derivative (usual difference). 0 means without that option
     'ignore_warnings': True,     # For ignore all warnings, use it only if you sure. It speed up the code 
     'concat_edge': False          # Connects the edges of a dataset
 }
@@ -53,7 +56,7 @@ groups = {                                                     # Use regex. Only
     '.*dish.*': 'dish',
 }
 
-main_path = path.join('csi', 'use_in_paper', '4_objects')
+main_path = path.join('csi', 'use_in_paper', '2_objects')
 # main_path = path.join('csi', 'homelocation', 'two place')
 
 train_path = path.join(main_path, 'train')
@@ -67,9 +70,7 @@ print('Test packets number:\t', df_test.shape[0], 'Packets:', df_test['object_ty
 print('Reading complete -->', round(time() - time_start, 2))
 
 # ---------------------------------------- PREPARATION ----------
-if settings['make_same']:
-    df_train = prep.make_same(df_train)
-    df_test = prep.make_same(df_test)
+
 
 if settings['normalize']:
     if complex_part == 'phase':
@@ -97,6 +98,35 @@ for _ in range(settings['diff_order']):
     df_test = prep.concat_csi(prep.difference(*prep.split_csi(df_test)))
 
 
+# !-----------------------------------------------------------------
+
+# df_train = prep.split_csi(df_train)[1]
+# df_test = prep.split_csi(df_test)[1]
+
+# print(df_test)
+
+
+
+df_train_abs = prep.concat_csi(readcsi.get_csi_dfs(train_path, groups, 'abs')).drop('object_type', axis=1)
+df_test_abs = prep.concat_csi(readcsi.get_csi_dfs(test_path, groups, 'abs')).drop('object_type', axis=1)
+
+df_train_abs.columns = [i + 224 for i in range(224)]
+df_test_abs.columns = [i + 224 for i in range(224)]
+
+df_train = pd.concat([df_train, df_train_abs], axis=1)
+df_test = pd.concat([df_test, df_test_abs], axis=1)
+
+
+if settings['make_same']:
+    df_train = prep.make_same(df_train)
+    df_test = prep.make_same(df_test)
+
+# from matplotlib import pyplot as plt
+# df_test.head(5).drop('object_type', axis=1).T.plot()
+# plt.show()
+
+# !-----------------------------------------------------------------
+
 # ---------------------------------------- CLASSIFICATION ----------
 clf_res = pd.concat([
     # ml.fit_ffnn(df_train, df_test),
@@ -105,10 +135,12 @@ clf_res = pd.concat([
     ])
 
 # ---------------------------------------- RESULTS COMPARISON ----------
-sorted_res = clf_res.sort_values(by='method name', ascending=True, ignore_index=True)
+sorted_res = clf_res.sort_values(by='method name', ascending=False, ignore_index=True)
 
 print('\nClassification results:\n' + str(sorted_res))
 sorted_res.to_csv('results\\ml_results.csv', index=False)
+
+sorted_res['accuracy'].to_csv('results\\acc.csv', header=False, index=False)
 
 print('Finish -->', round(time() - time_start, 2))
 
