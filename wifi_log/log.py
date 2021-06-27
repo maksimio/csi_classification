@@ -5,11 +5,9 @@ from os import path
 
 
 class Log:
-    lib = None
+    lib, lib_path = None, None
     csi_re, csi_im  = None, None
-    csi_im = []
-    nr, nc, num_tones = None, None, None
-    lib_path = None
+    nr, nc, num_tones = 2, 2, 56
 
 
     def _read_csi(self, csi_buf: list, nr: int, nc: int, num_tones: int) -> dict:
@@ -18,7 +16,7 @@ class Log:
 
         csi_buf = (ctypes.c_ubyte * len(csi_buf))(*csi_buf)
         Log.lib.read_csi(csi_buf, Log.csi_re[0], Log.csi_re[1], Log.csi_re[2], Log.csi_re[3], Log.csi_im[0], Log.csi_im[1], Log.csi_im[2], Log.csi_im[3])
-
+        
         return {
             'csi_on_path_1': np.array(Log.csi_re[0][:]) + 1j * np.array(Log.csi_im[0][:]), 
             'csi_on_path_2': np.array(Log.csi_re[1][:]) + 1j * np.array(Log.csi_im[1][:]), 
@@ -26,7 +24,7 @@ class Log:
             'csi_on_path_4': np.array(Log.csi_re[3][:]) + 1j * np.array(Log.csi_im[3][:])}
             
 
-    def run_lib(lib_path: str, nr: int=2, nc: int=2, num_tones: int=56) -> None:
+    def run_lib(lib_path: str) -> None:
         Log.lib_path = lib_path
         Log.lib = ctypes.CDLL(lib_path)
         Log.lib.read_csi.restype = None
@@ -36,7 +34,6 @@ class Log:
         ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int), 
         ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int), 
         ctypes.POINTER(ctypes.c_int))
-        Log.nr, Log.nc, Log.num_tones = nr, nc, num_tones
         Log.csi_re = [[0 for i in range(Log.num_tones)] for k in range(Log.nr * Log.nc)]
         Log.csi_im = [[0 for i in range(Log.num_tones)] for k in range(Log.nr * Log.nc)]
         for i in range(Log.nr * Log.nc):
@@ -46,7 +43,7 @@ class Log:
 
     def __init__(self, path: str) -> None:
         self.path = path
-        self.raw = None
+        self.raw = []
 
         if Log.lib == None:
             raise ValueError('Call run_lib static method!')
@@ -55,7 +52,7 @@ class Log:
     def read(self):
         with open(self.path, 'rb') as f:
             len_file = path.getsize(self.path)
-            self.raw, cur = [], 0
+            cur = 0
 
             while cur < len_file:
                 csi_matrix = {}
