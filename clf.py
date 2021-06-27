@@ -56,8 +56,8 @@ groups = {                                                     # Use regex. Only
     '.*dish.*': 'dish',
 }
 
-main_path = path.join('csi', 'use_in_paper', '2_objects')
-# main_path = path.join('csi', 'homelocation', 'two place')
+# main_path = path.join('csi', 'use_in_paper', '2_objects')
+main_path = path.join('csi', 'homelocation', 'five place')
 
 train_path = path.join(main_path, 'train')
 test_path = path.join(main_path, 'test')

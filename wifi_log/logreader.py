@@ -4,87 +4,82 @@ from struct import unpack
 from os import path
 
 
-class Reader:
-    def __init__(self, lib_path, nr:int=2, nc:int=2, num_tones:int=56) -> None:
-        self.lib = ctypes.CDLL(lib_path)
-        self.lib.read_csi.restype = None
-        self.lib.read_csi.argtypes = (
-        ctypes.POINTER(ctypes.c_ubyte), 
-        ctypes.POINTER(ctypes.c_int),     
-        ctypes.POINTER(ctypes.c_int), 
-        ctypes.POINTER(ctypes.c_int), 
-        ctypes.POINTER(ctypes.c_int), 
-        ctypes.POINTER(ctypes.c_int), 
-        ctypes.POINTER(ctypes.c_int), 
-        ctypes.POINTER(ctypes.c_int), 
-        ctypes.POINTER(ctypes.c_int))
-        self.nr, self.nc, self.num_tones = nr, nc, num_tones
-        self.csi_re = [[0 for i in range(self.num_tones)] for k in range(self.nr * self.nc)]
-        self.csi_im = [[0 for i in range(self.num_tones)] for k in range(self.nr * self.nc)]
-        for i in range(self.nr * self.nc):
-            self.csi_re[i] = (ctypes.c_int * len(self.csi_re[i]))(*self.csi_re[i])
-            self.csi_im[i] = (ctypes.c_int * len(self.csi_im[i]))(*self.csi_im[i])
+class Log:
+    lib = None
+    csi_re, csi_im  = None, None
+    csi_im = []
+    nr, nc, num_tones = None, None, None
+    lib_path = None
 
 
     def _read_csi(self, csi_buf: list, nr: int, nc: int, num_tones: int) -> dict:
-        if nr != self.nr or nc != self.nc or num_tones != self.num_tones:
-            raise TypeError('Error: nr != self or nc != self or num_tones != self')
+        if nr != Log.nr or nc != Log.nc or num_tones != Log.num_tones:
+            raise ValueError('Error: nr != self or nc != self or num_tones != self')
 
         csi_buf = (ctypes.c_ubyte * len(csi_buf))(*csi_buf)
-        self.lib.read_csi(csi_buf, self.csi_re[0], self.csi_re[1], self.csi_re[2], self.csi_re[3], self.csi_im[0], self.csi_im[1], self.csi_im[2], self.csi_im[3])
+        Log.lib.read_csi(csi_buf, Log.csi_re[0], Log.csi_re[1], Log.csi_re[2], Log.csi_re[3], Log.csi_im[0], Log.csi_im[1], Log.csi_im[2], Log.csi_im[3])
 
         return {
-            'csi_on_path_1': np.array(self.csi_re[0][:]) + 1j * np.array(self.csi_im[0][:]), 
-            'csi_on_path_2': np.array(self.csi_re[1][:]) + 1j * np.array(self.csi_im[1][:]), 
-            'csi_on_path_3': np.array(self.csi_re[2][:]) + 1j * np.array(self.csi_im[2][:]), 
-            'csi_on_path_4': np.array(self.csi_re[3][:]) + 1j * np.array(self.csi_im[3][:])}
+            'csi_on_path_1': np.array(Log.csi_re[0][:]) + 1j * np.array(Log.csi_im[0][:]), 
+            'csi_on_path_2': np.array(Log.csi_re[1][:]) + 1j * np.array(Log.csi_im[1][:]), 
+            'csi_on_path_3': np.array(Log.csi_re[2][:]) + 1j * np.array(Log.csi_im[2][:]), 
+            'csi_on_path_4': np.array(Log.csi_re[3][:]) + 1j * np.array(Log.csi_im[3][:])}
+            
 
+    def run_lib(lib_path: str, nr: int=2, nc: int=2, num_tones: int=56) -> None:
+        Log.lib_path = lib_path
+        Log.lib = ctypes.CDLL(lib_path)
+        Log.lib.read_csi.restype = None
+        Log.lib.read_csi.argtypes = (
+        ctypes.POINTER(ctypes.c_ubyte), ctypes.POINTER(ctypes.c_int),     
+        ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int), 
+        ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int), 
+        ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int), 
+        ctypes.POINTER(ctypes.c_int))
+        Log.nr, Log.nc, Log.num_tones = nr, nc, num_tones
+        Log.csi_re = [[0 for i in range(Log.num_tones)] for k in range(Log.nr * Log.nc)]
+        Log.csi_im = [[0 for i in range(Log.num_tones)] for k in range(Log.nr * Log.nc)]
+        for i in range(Log.nr * Log.nc):
+            Log.csi_re[i] = (ctypes.c_int * len(Log.csi_re[i]))(*Log.csi_re[i])
+            Log.csi_im[i] = (ctypes.c_int * len(Log.csi_im[i]))(*Log.csi_im[i])
+        
 
-class Log:
-    def __init__(self, reader: Reader, path: str, save_payload: bool=False) -> None:
+    def __init__(self, path: str) -> None:
         self.path = path
-        self.save_payload = save_payload
-        self.reader = reader
-        self.log = None
+        self.raw = None
+
+        if Log.lib == None:
+            raise ValueError('Call run_lib static method!')
+
     
     def read(self):
         with open(self.path, 'rb') as f:
             len_file = path.getsize(self.path)
-            ret, cur = [], 0
+            self.raw, cur = [], 0
 
-            while cur < (len_file - 4):
-                field_len = unpack('>H', f.read(2))[0]
-                cur += 2
-                if cur + field_len > len_file:
-                    break
-
+            while cur < len_file:
                 csi_matrix = {}
+                csi_matrix['field_len'] = unpack('>H', f.read(2))[0] # field_len doesn`t use
                 csi_matrix['timestamp'], csi_matrix['csi_len'], csi_matrix['tx_channel'], csi_matrix['err_info'], csi_matrix['noise_floor'], csi_matrix['rate'],  csi_matrix['bandWitdh'], csi_matrix['num_tones'],  csi_matrix['nr'], csi_matrix['nc'], csi_matrix['rssi'], csi_matrix['rssi1'], csi_matrix['rssi2'], csi_matrix['rssi3'], csi_matrix['payload_len'] = unpack('>QHHBBBBBBBBBBBH', f.read(25))
-                cur += 25
-
+               
                 if csi_matrix['csi_len']:
-                    # This condition saves a decent amount of time
-                    csi_buf = unpack('B' * csi_matrix['csi_len'], f.read(csi_matrix['csi_len']))
-                    csi_matrix.update(self.reader._read_csi(csi_buf, csi_matrix['nr'], csi_matrix['nc'], csi_matrix['num_tones']))
-                    cur += csi_matrix['csi_len']
-
-                if csi_matrix['payload_len']:
-                    payload = unpack('B' * csi_matrix['payload_len'], f.read(csi_matrix['payload_len']))
-                    cur += csi_matrix['payload_len']
-                    if self.save_payload:
-                        csi_matrix['payload'] = payload
-                    else:
-                        csi_matrix['payload'] = None
-                else:
-                    csi_matrix['payload'] = None
-
-                if (cur + 420) > len_file:
-                    break
-                if csi_matrix['payload_len'] >= 1000 and csi_matrix['csi_len']:
-                    csi_matrix['is_special'] = True
-                else:
-                    csi_matrix['is_special'] = False
+                    buf = unpack('B' * csi_matrix['csi_len'], f.read(csi_matrix['csi_len']))
+                    csi_matrix['csi_raw'] = self._read_csi(buf, csi_matrix['nr'], csi_matrix['nc'], csi_matrix['num_tones'])
                 
-                ret.append(csi_matrix)
+                csi_matrix['payload'] = unpack('B' * csi_matrix['payload_len'], f.read(csi_matrix['payload_len']))
+                cur += 27 + csi_matrix['csi_len'] + csi_matrix['payload_len']
                 
-        self.data = ret
+                self.raw.append(csi_matrix)
+
+        return self
+
+    
+    def __getitem__(self, key):
+        return self.raw[key]
+
+    def __add__(self, other):
+        self.raw += other.raw
+        return self
+
+    def __len__(self):
+        return len(self.raw)
