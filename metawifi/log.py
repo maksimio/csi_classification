@@ -1,20 +1,21 @@
-import numpy as np
+from numpy import zeros
 from struct import unpack
 from os import path
 from numba import njit
+from ._timerun import stopwatch
 
 
 @njit(cache=True)
-def signbit_convert(data):
+def __signbit_convert(data: int) -> int:
     if data & 512:
         data -= 1024
     return data
 
 
 @njit(cache=True)
-def _read_csi_native(local_h, nr, nc, num_tones):
-    csi_re = np.arange(num_tones * nr * nc).reshape(nr * nc, num_tones)
-    csi_im = np.arange(num_tones * nr * nc).reshape(nr * nc, num_tones)
+def _read_csi_native(local_h: int, nr: int, nc: int, num_tones: int) -> list:
+    csi_re = zeros((nr * nc, num_tones))
+    csi_im = zeros((nr * nc, num_tones))
 
     BITS_PER_BYTE = 8
     BITS_PER_SYMBOL = 10
@@ -47,28 +48,28 @@ def _read_csi_native(local_h, nr, nc, num_tones):
                 bits_left -= BITS_PER_SYMBOL
                 current_data = current_data >> BITS_PER_SYMBOL
 
-                csi_re[nr_idx + nc_idx * 2, k] = signbit_convert(real)
-                csi_im[nr_idx + nc_idx * 2, k] = signbit_convert(imag)
+                csi_re[nr_idx + nc_idx * 2, k] = __signbit_convert(real)
+                csi_im[nr_idx + nc_idx * 2, k] = __signbit_convert(imag)
 
     return csi_re, csi_im
 
 
 class Log:
-    def _read_csi(self, csi_buf: list, nr: int, nc: int, num_tones: int) -> dict:
+    def __read_csi(self, csi_buf: list, nr: int, nc: int, num_tones: int) -> dict:
         csi_re, csi_im = _read_csi_native(csi_buf, nr, nc, num_tones)
-        return {
-            'csi_on_path_1': csi_re[0] + 1j * csi_im[0], 
-            'csi_on_path_2': csi_re[1] + 1j * csi_im[1], 
-            'csi_on_path_3': csi_re[2] + 1j * csi_im[2], 
-            'csi_on_path_4': csi_re[3] + 1j * csi_im[3]
-        }
+        return [
+            csi_re[0] + 1j * csi_im[0], 
+            csi_re[1] + 1j * csi_im[1], 
+            csi_re[2] + 1j * csi_im[2], 
+            csi_re[3] + 1j * csi_im[3]
+        ]
 
 
     def __init__(self, path: str) -> None:
         self.path = path
         self.raw = []
 
-
+    @stopwatch
     def read(self):
         with open(self.path, 'rb') as f:
             len_file = path.getsize(self.path)
@@ -81,7 +82,7 @@ class Log:
                
                 if csi_matrix['csi_len']:
                     buf = unpack('B' * csi_matrix['csi_len'], f.read(csi_matrix['csi_len']))
-                    csi_matrix['csi_raw'] = self._read_csi(buf, csi_matrix['nr'], csi_matrix['nc'], csi_matrix['num_tones'])
+                    csi_matrix['csi'] = self.__read_csi(buf, csi_matrix['nr'], csi_matrix['nc'], csi_matrix['num_tones'])
                 
                 csi_matrix['payload'] = unpack('B' * csi_matrix['payload_len'], f.read(csi_matrix['payload_len']))
                 cur += 27 + csi_matrix['csi_len'] + csi_matrix['payload_len']
@@ -91,12 +92,14 @@ class Log:
         return self
 
     
-    def __getitem__(self, key):
+    def __getitem__(self, key: int) -> dict:
         return self.raw[key]
 
-    def __add__(self, other):
+
+    def __add__(self, other: object):
         self.raw += other.raw
         return self
 
-    def __len__(self):
+
+    def __len__(self) -> int:
         return len(self.raw)
