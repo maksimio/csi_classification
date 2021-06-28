@@ -1,54 +1,74 @@
-import ctypes
 import numpy as np
 from struct import unpack
 from os import path
+from numba import njit
+
+
+@njit(cache=True)
+def signbit_convert(data):
+    if data & 512:
+        data -= 1024
+    return data
+
+
+@njit(cache=True)
+def _read_csi_native(local_h, nr, nc, num_tones):
+    csi_re = np.arange(num_tones * nr * nc).reshape(nr * nc, num_tones)
+    csi_im = np.arange(num_tones * nr * nc).reshape(nr * nc, num_tones)
+
+    BITS_PER_BYTE = 8
+    BITS_PER_SYMBOL = 10
+    bits_left = 16
+
+    h_data = local_h[0] + (local_h[1] << BITS_PER_BYTE)
+    current_data = h_data & 65535
+    idx = 2
+
+    for k in range(num_tones):
+        for nc_idx in range(nc):
+            for nr_idx in range(nr):
+                if bits_left < BITS_PER_SYMBOL:
+                    h_data = local_h[idx] + (local_h[idx + 1] << BITS_PER_BYTE)
+                    idx += 2
+                    current_data += h_data << bits_left
+                    bits_left += 16
+                
+                imag = current_data & 1023
+                bits_left -= BITS_PER_SYMBOL
+                current_data = current_data >> BITS_PER_SYMBOL
+
+                if bits_left < BITS_PER_SYMBOL:
+                    h_data = local_h[idx] + (local_h[idx + 1] << BITS_PER_BYTE)
+                    idx += 2
+                    current_data += h_data << bits_left
+                    bits_left += 16
+
+                real = current_data & 1023
+                bits_left -= BITS_PER_SYMBOL
+                current_data = current_data >> BITS_PER_SYMBOL
+
+                csi_re[nr_idx + nc_idx * 2, k] = signbit_convert(real)
+                csi_im[nr_idx + nc_idx * 2, k] = signbit_convert(imag)
+
+    return csi_re, csi_im
 
 
 class Log:
-    lib, lib_path = None, None
-    csi_re, csi_im  = None, None
-    nr, nc, num_tones = 2, 2, 56
-
-
     def _read_csi(self, csi_buf: list, nr: int, nc: int, num_tones: int) -> dict:
-        if nr != Log.nr or nc != Log.nc or num_tones != Log.num_tones:
-            raise ValueError('Error: nr != self or nc != self or num_tones != self')
-
-        csi_buf = (ctypes.c_ubyte * len(csi_buf))(*csi_buf)
-        Log.lib.read_csi(csi_buf, Log.csi_re[0], Log.csi_re[1], Log.csi_re[2], Log.csi_re[3], Log.csi_im[0], Log.csi_im[1], Log.csi_im[2], Log.csi_im[3])
-        
+        csi_re, csi_im = _read_csi_native(csi_buf, nr, nc, num_tones)
         return {
-            'csi_on_path_1': np.array(Log.csi_re[0][:]) + 1j * np.array(Log.csi_im[0][:]), 
-            'csi_on_path_2': np.array(Log.csi_re[1][:]) + 1j * np.array(Log.csi_im[1][:]), 
-            'csi_on_path_3': np.array(Log.csi_re[2][:]) + 1j * np.array(Log.csi_im[2][:]), 
-            'csi_on_path_4': np.array(Log.csi_re[3][:]) + 1j * np.array(Log.csi_im[3][:])}
-            
+            'csi_on_path_1': csi_re[0] + 1j * csi_im[0], 
+            'csi_on_path_2': csi_re[1] + 1j * csi_im[1], 
+            'csi_on_path_3': csi_re[2] + 1j * csi_im[2], 
+            'csi_on_path_4': csi_re[3] + 1j * csi_im[3]
+        }
 
-    def run_lib(lib_path: str) -> None:
-        Log.lib_path = lib_path
-        Log.lib = ctypes.CDLL(lib_path)
-        Log.lib.read_csi.restype = None
-        Log.lib.read_csi.argtypes = (
-        ctypes.POINTER(ctypes.c_ubyte), ctypes.POINTER(ctypes.c_int),     
-        ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int), 
-        ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int), 
-        ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int), 
-        ctypes.POINTER(ctypes.c_int))
-        Log.csi_re = [[0 for i in range(Log.num_tones)] for k in range(Log.nr * Log.nc)]
-        Log.csi_im = [[0 for i in range(Log.num_tones)] for k in range(Log.nr * Log.nc)]
-        for i in range(Log.nr * Log.nc):
-            Log.csi_re[i] = (ctypes.c_int * len(Log.csi_re[i]))(*Log.csi_re[i])
-            Log.csi_im[i] = (ctypes.c_int * len(Log.csi_im[i]))(*Log.csi_im[i])
-        
 
     def __init__(self, path: str) -> None:
         self.path = path
         self.raw = []
 
-        if Log.lib == None:
-            raise ValueError('Call run_lib static method!')
 
-    
     def read(self):
         with open(self.path, 'rb') as f:
             len_file = path.getsize(self.path)
