@@ -1,8 +1,7 @@
-import ctypes
 import numpy as np
 from struct import unpack
 from os import path
-from numba import njit, jit
+from numba import njit
 
 
 @njit(cache=True)
@@ -16,8 +15,8 @@ def signbit_convert(data):
 
 @njit(cache=True)
 def _read_csi_native(local_h, nr, nc, num_tones):
-    csi_re = [[0 for i in range(num_tones)] for k in range(nr * nc)]
-    csi_im = [[0 for i in range(num_tones)] for k in range(nr * nc)]
+    csi_re = np.arange(56 * 4).reshape(4, 56)
+    csi_im = np.arange(56 * 4).reshape(4, 56)
 
     BITS_PER_BYTE = 8
     BITS_PER_SYMBOL = 10
@@ -51,8 +50,8 @@ def _read_csi_native(local_h, nr, nc, num_tones):
                 bits_left -= BITS_PER_SYMBOL
                 current_data = current_data >> BITS_PER_SYMBOL
 
-                csi_re[nr_idx + nc_idx * 2][k] = signbit_convert(real)
-                csi_im[nr_idx + nc_idx * 2][k] = signbit_convert(imag)
+                csi_re[nr_idx + nc_idx * 2, k] = signbit_convert(real)
+                csi_im[nr_idx + nc_idx * 2, k] = signbit_convert(imag)
 
     return csi_re, csi_im
 
@@ -60,19 +59,19 @@ def _read_csi_native(local_h, nr, nc, num_tones):
 class Log:
     def _read_csi(self, csi_buf: list, nr: int, nc: int, num_tones: int) -> dict:
         csi_re, csi_im = _read_csi_native(csi_buf, nr, nc, num_tones)
-        a = 5
         return {
-            'csi_on_path_1': np.array(csi_re[0][:]) + 1j * np.array(csi_im[0][:]), 
-            'csi_on_path_2': np.array(csi_re[1][:]) + 1j * np.array(csi_im[1][:]), 
-            'csi_on_path_3': np.array(csi_re[2][:]) + 1j * np.array(csi_im[2][:]), 
-            'csi_on_path_4': np.array(csi_re[3][:]) + 1j * np.array(csi_im[3][:])}
+            'csi_on_path_1': csi_re[0] + 1j * csi_im[0], 
+            'csi_on_path_2': csi_re[1] + 1j * csi_im[1], 
+            'csi_on_path_3': csi_re[2] + 1j * csi_im[2], 
+            'csi_on_path_4': csi_re[3] + 1j * csi_im[3]
+        }
 
 
     def __init__(self, path: str) -> None:
         self.path = path
         self.raw = []
 
-    
+
     def read(self):
         with open(self.path, 'rb') as f:
             len_file = path.getsize(self.path)
