@@ -92,6 +92,18 @@ class LogReader:
         return self
 
     
+    def add(self, name: str=None, value=None):
+        if name == None:
+            name = 'path'
+        if value == None:
+            value = self.path
+
+        for dictionary in self.raw:
+            dictionary.update({ name: value })
+        
+        return self
+
+    
     def __getitem__(self, key: int) -> dict:
         return self.raw[key]
 

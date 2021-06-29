@@ -26,8 +26,7 @@ class HighLight:
     SUCCESS = '\033[92m'
     WARNING = '\033[93m'
     FAIL = '\033[91m'
-    PINK = '\033[95m'
-    BLUE = '\033[94m'
+    INFO = '\033[94m'
     BOLD = '\033[1m'
     __ENDC = '\033[0m'
 
@@ -41,10 +40,11 @@ class HighLight:
 
 
     def hprint(self, m_type, msg):
+        t = datetime.now().strftime('%H:%M:%S --> ')
         if type(m_type) == list:
-            s = ''.join(m_type) + msg + HighLight.__ENDC
+            s = t + ''.join(m_type) + msg + HighLight.__ENDC
         elif type(m_type) == str:
-            s = m_type + msg + HighLight.__ENDC
+            s = t + m_type + msg + HighLight.__ENDC
         else:
            raise ValueError('M_type should be list or str!') 
         print(s)

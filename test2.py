@@ -1,5 +1,7 @@
 from metawifi.log.logcombiner import LogCombiner
-# from metawifi._timerun import HighLight
 
-lc = LogCombiner()
+lc = LogCombiner(LogCombiner.train_test('./csi/homelocation/five place'))
+lc.combine()
 
+
+a = 5
