@@ -2,7 +2,7 @@ from numpy import zeros
 from struct import unpack
 from os import path
 from numba import njit
-from ._timerun import stopwatch
+from .._timerun import stopwatch
 
 
 @njit(cache=True)
@@ -54,13 +54,13 @@ def _read_csi_native(local_h: int, nr: int, nc: int, num_tones: int) -> list:
     return csi_re, csi_im
 
 
-class Log:
+class LogReader:
     def __read_csi(self, csi_buf: list, nr: int, nc: int, num_tones: int) -> dict:
         csi_re, csi_im = _read_csi_native(csi_buf, nr, nc, num_tones)
         return [
-            csi_re[0] + 1j * csi_im[0], 
-            csi_re[1] + 1j * csi_im[1], 
-            csi_re[2] + 1j * csi_im[2], 
+            csi_re[0] + 1j * csi_im[0],
+            csi_re[1] + 1j * csi_im[1],
+            csi_re[2] + 1j * csi_im[2],
             csi_re[3] + 1j * csi_im[3]
         ]
 

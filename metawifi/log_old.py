@@ -17,11 +17,11 @@ class Log:
         csi_buf = (ctypes.c_ubyte * len(csi_buf))(*csi_buf)
         Log.lib.read_csi(csi_buf, Log.csi_re[0], Log.csi_re[1], Log.csi_re[2], Log.csi_re[3], Log.csi_im[0], Log.csi_im[1], Log.csi_im[2], Log.csi_im[3])
         
-        return {
-            'csi_on_path_1': np.array(Log.csi_re[0][:]) + 1j * np.array(Log.csi_im[0][:]), 
-            'csi_on_path_2': np.array(Log.csi_re[1][:]) + 1j * np.array(Log.csi_im[1][:]), 
-            'csi_on_path_3': np.array(Log.csi_re[2][:]) + 1j * np.array(Log.csi_im[2][:]), 
-            'csi_on_path_4': np.array(Log.csi_re[3][:]) + 1j * np.array(Log.csi_im[3][:])}
+        return [
+            np.array(Log.csi_re[0][:]) + 1j * np.array(Log.csi_im[0][:]), 
+            np.array(Log.csi_re[1][:]) + 1j * np.array(Log.csi_im[1][:]), 
+            np.array(Log.csi_re[2][:]) + 1j * np.array(Log.csi_im[2][:]), 
+            np.array(Log.csi_re[3][:]) + 1j * np.array(Log.csi_im[3][:])]
             
 
     def run_lib(lib_path: str) -> None:
@@ -61,7 +61,7 @@ class Log:
                
                 if csi_matrix['csi_len']:
                     buf = unpack('B' * csi_matrix['csi_len'], f.read(csi_matrix['csi_len']))
-                    csi_matrix['csi_raw'] = self._read_csi(buf, csi_matrix['nr'], csi_matrix['nc'], csi_matrix['num_tones'])
+                    csi_matrix['csi'] = self._read_csi(buf, csi_matrix['nr'], csi_matrix['nc'], csi_matrix['num_tones'])
                 
                 csi_matrix['payload'] = unpack('B' * csi_matrix['payload_len'], f.read(csi_matrix['payload_len']))
                 cur += 27 + csi_matrix['csi_len'] + csi_matrix['payload_len']
