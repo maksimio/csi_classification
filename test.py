@@ -1,5 +1,5 @@
 from time import time
-dll_way = False
+dll_way = True
 
 if dll_way:
     from metawifi.log_old import Log as LogReader

@@ -31,6 +31,7 @@ class HighLight:
     __ENDC = '\033[0m'
 
     __calls = []
+    __start_time = None
 
 
     def __new__(cls):
