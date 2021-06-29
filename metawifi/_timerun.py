@@ -20,3 +20,31 @@ def stopwatch(f):
         return self
     
     return wrapper
+
+
+class HighLight:
+    SUCCESS = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    PINK = '\033[95m'
+    BLUE = '\033[94m'
+    BOLD = '\033[1m'
+    __ENDC = '\033[0m'
+
+    __calls = []
+
+
+    def __new__(cls):
+        if not hasattr(cls, 'instance'):
+            cls.instance = super(HighLight, cls).__new__(cls)
+        return cls.instance
+
+
+    def hprint(self, m_type, msg):
+        if type(m_type) == list:
+            s = ''.join(m_type) + msg + HighLight.__ENDC
+        elif type(m_type) == str:
+            s = m_type + msg + HighLight.__ENDC
+        else:
+           raise ValueError('M_type should be list or str!') 
+        print(s)

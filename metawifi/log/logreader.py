@@ -1,8 +1,8 @@
+from .._timerun import stopwatch
 from numpy import zeros
 from struct import unpack
 from os import path
 from numba import njit
-from .._timerun import stopwatch
 
 
 @njit(cache=True)
