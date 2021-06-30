@@ -57,12 +57,7 @@ def _read_csi_native(local_h: int, nr: int, nc: int, num_tones: int) -> list:
 class LogReader:
     def __read_csi(self, csi_buf: list, nr: int, nc: int, num_tones: int) -> dict:
         csi_re, csi_im = _read_csi_native(csi_buf, nr, nc, num_tones)
-        return [
-            csi_re[0] + 1j * csi_im[0],
-            csi_re[1] + 1j * csi_im[1],
-            csi_re[2] + 1j * csi_im[2],
-            csi_re[3] + 1j * csi_im[3]
-        ]
+        return [csi_re[i] + 1j * csi_im[i] for i in range(nr * nc)]
 
 
     def __init__(self, path: str) -> None:
