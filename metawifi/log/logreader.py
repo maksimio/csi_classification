@@ -1,4 +1,4 @@
-from .._timerun import stopwatch
+from ..watcher import Watcher as W
 from numpy import zeros
 from struct import unpack
 from os import path
@@ -64,7 +64,7 @@ class LogReader:
         self.path = path
         self.raw = []
 
-    @stopwatch
+    @W.stopwatch
     def read(self):
         with open(self.path, 'rb') as f:
             len_file = path.getsize(self.path)
@@ -78,7 +78,9 @@ class LogReader:
                 if csi_matrix['csi_len']:
                     buf = unpack('B' * csi_matrix['csi_len'], f.read(csi_matrix['csi_len']))
                     csi_matrix['csi'] = self.__read_csi(buf, csi_matrix['nr'], csi_matrix['nc'], csi_matrix['num_tones'])
-                
+                else:
+                    csi_matrix['csi'] = [] 
+                               
                 csi_matrix['payload'] = unpack('B' * csi_matrix['payload_len'], f.read(csi_matrix['payload_len']))
                 cur += 27 + csi_matrix['csi_len'] + csi_matrix['payload_len']
                 

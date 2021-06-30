@@ -1,44 +1,45 @@
-from .._timerun import stopwatch, HighLight as HL
+from ..watcher import Watcher as W
 from .logreader import LogReader
 from os.path import join
 from os import listdir
-import re
+from re import search
 
 class LogCombiner:
-    __base_categoriess = [
+    __base_categories = [
         'kitchen', 'room', 'bathroom', 'hall', 'toilet', 'air',
         'bottle', 'thermos', 'grater', 'casserole', 'dish'
     ]
-    __hl = HL()
-    __dirname_test = 'test'
-    __dirname_train = 'train'
+    __unknown = 'unknown'
 
 
     def __init__(self, pathes: list, categories: list=None) -> None:
         self.filelist = []
         self.readers = []
         self.raw = []
+        self.__w = W()
 
         if categories == None:
-            self.categories = LogCombiner.__base_categoriess
-            LogCombiner.__hl.hprint(LogCombiner.__hl.WARNING, 'LogCombiner: set base_categories in categories!')
+            self.categories = self.__base_categories
+            self.__w.hprint(self.__w.WARNING, 'LogCombiner: set base_categories in categories!')
         else:
             self.categories = categories
 
+        self.types = list(set(path.split('/')[-2] for path in pathes))
         self.categories.sort(key = len)
+        self.categories.reverse()
         self.dir_pathes = pathes
         self.__make_filelist()
 
     
     @staticmethod
-    def train_test(main_path: str):
+    def subdirs(main_path: str):
         if not main_path.endswith('/'):
             main_path += '/'
+        
+        subdirs = listdir(main_path)
+        subdirs = [join(main_path, subdir) + '/' for subdir in subdirs]
 
-        train_path = join(main_path, LogCombiner.__dirname_train) + '/'
-        test_path = join(main_path, LogCombiner.__dirname_test) + '/'
-
-        return [train_path, test_path]
+        return subdirs
 
 
     def __make_filelist(self):
@@ -49,25 +50,30 @@ class LogCombiner:
     
     def __get_category(self, filepath):
         for cat in self.categories:
-            research = re.search('.*' + cat + '.*', filepath)
-            if research:
-                return research.group(0)
+            if search('.*' + cat + '.*', filepath):
+                return cat
         
+        return self.__unknown
 
-        return 'unknown'
+    def __get_type(self, filepath):
+        for type in self.types:
+            if search('.*' + type + '.*', filepath):
+                return type
+        
+        return self.__unknown
 
 
-    @stopwatch
+    @W.stopwatch
     def __read(self):
         for fpath in self.filelist:
             self.readers.append(LogReader(fpath).read())
         return self
 
 
-    @stopwatch
+    @W.stopwatch
     def _extract(self):
         for logreader in self.readers:
-            self.raw += logreader.add().add('catogory', self.__get_category(logreader.path))
+            self.raw += logreader.add().add('category', self.__get_category(logreader.path)).add('type', self.__get_type(logreader.path))
         return self
 
     
@@ -77,8 +83,8 @@ class LogCombiner:
 
     def combine(self):
         self.__read()
-        LogCombiner.__hl.hprint(LogCombiner.__hl.INFO, 'LogCombiner: read ' + str(len(self.readers)) + ' files in ' + str(round(self.time[-1]['duration'], 2)) + ' seconds (' + str(round(len(self.readers) / self.time[-1]['duration'], 1)) +  ' files/second)')
+        self.__w.hprint(self.__w.INFO, 'LogCombiner: read ' + str(len(self.readers)) + ' files in ' + str(round(self.time[-1]['duration'], 2)) + ' seconds (' + str(round(len(self.readers) / self.time[-1]['duration'], 1)) +  ' files/second)')
         self._extract()
-        LogCombiner.__hl.hprint(LogCombiner.__hl.INFO, 'LogCombiner: extract files in ' + str(round(self.time[-1]['duration'], 2)) + ' seconds')
+        self.__w.hprint(self.__w.INFO, 'LogCombiner: extract files in ' + str(round(self.time[-1]['duration'], 2)) + ' seconds')
 
         return self
