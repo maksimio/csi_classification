@@ -76,10 +76,6 @@ class LogCombiner:
             self.raw += logreader.add().add('category', self.__get_category(logreader.path)).add('type', self.__get_type(logreader.path))
         return self
 
-    
-    def filter():
-        pass
-
 
     def combine(self):
         self.__read()
