@@ -41,7 +41,7 @@ for key in settings:
     print('--- ' + key + ': ' + str(settings[key]))
 
 # ---------------------------------------- READING ----------
-complex_part = 'phase'                                         # 'abs' or 'phase' will reading
+complex_part = 'abs'                                         # 'abs' or 'phase' will reading
 groups = {                                                     # Use regex. Only exist groups will be added
     '.*itch.*': 'kitchen',
     'room.*': 'room',
@@ -56,8 +56,8 @@ groups = {                                                     # Use regex. Only
     '.*dish.*': 'dish',
 }
 
-# main_path = path.join('csi', 'use_in_paper', '2_objects')
-main_path = path.join('csi', 'homelocation', 'five place')
+main_path = path.join('csi', 'use_in_paper', '2_objects')
+# main_path = path.join('csi', 'homelocation', 'five place')
 
 train_path = path.join(main_path, 'train')
 test_path = path.join(main_path, 'test')
@@ -68,6 +68,7 @@ df_test = prep.concat_csi(readcsi.get_csi_dfs(test_path, groups, complex_part))
 print('Train packets number:\t', df_train.shape[0], 'Packets:', df_train['object_type'].unique())
 print('Test packets number:\t', df_test.shape[0], 'Packets:', df_test['object_type'].unique())
 print('Reading complete -->', round(time() - time_start, 2))
+exit()
 
 # ---------------------------------------- PREPARATION ----------
 

@@ -1,6 +1,5 @@
 #TODO Умное чтение вложенных файлов с отсевом не .dat файлов
 #TODO MetaWifi - методы с информацией о df (число категорий и т.п.)
-
 from .watcher import Watcher as W
 from .log.logcombiner import LogCombiner
 import pandas as pd
@@ -18,6 +17,7 @@ class MetaWifi(LogCombiner):
         self.__w.hprint(self.__w.INFO, 'MetaWifi: {} to df in ' + str(round(self.time[-1]['duration'], 2)) + ' seconds')
 
         self.__make_df_raw_filter()
+        self.__w.hprint(self.__w.INFO, 'MetaWifi: filter df_raw and remove ' + str(self.df_raw.shape[0] - self.df.shape[0]) + ' packets' )
 
         self.__make_csi()
         self.__w.hprint(self.__w.INFO, 'MetaWifi: get complex CSI dfs in ' + str(round(self.time[-1]['duration'], 2)) + ' seconds')
@@ -28,6 +28,7 @@ class MetaWifi(LogCombiner):
         self.df_raw = pd.DataFrame(self.raw)
 
 
+    @W.stopwatch
     def __make_df_raw_filter(self) -> None:
         df = self.df_raw
         self.df = df[(df['csi_len'] != 0)].reset_index(drop=True)
