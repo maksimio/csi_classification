@@ -1,9 +1,10 @@
 import pandas as pd
-from metawifi import MetaWifi, MetaLearn
+from metawifi import WifiDf, WifiLearn
 from matplotlib import pyplot as plt
 
+wd = WifiDf('./csi/use_in_paper/2_objects').set_type('abs')
+wl = WifiLearn(*wd.prep_rssi()).fit_classic().print()
 
-mf = MetaWifi('./csi/use_in_paper/4_objects').set_type('phase').unjump().diff(5).smooth(25, 'hamming').view()
-lf = MetaLearn(*mf.prep_csi())
-res = lf.fit_classic()
-print(res)
+wl = WifiLearn(*wd.prep_csi()).fit_classic().print()
+wd.scale(0.01)
+wl = WifiLearn(*wd.prep_csi()).fit_classic().print()
