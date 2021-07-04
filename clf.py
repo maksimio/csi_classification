@@ -7,9 +7,9 @@ from numpy.lib.twodim_base import triu_indices
 settings = {
     'make_smooth': False,         # Smoothing df. You can set the width of smooth window in code below
     'make_reduce': False,         # Reduce the size of df
-    'make_same': True,           # Cutting packets to have the same sizes of all target values
-    'normalize': True,           # Only for phase! Remove phase jumps
-    'diff_order': 1,             # Order of derivative (usual difference). 0 means without that option
+    'make_same': False,           # Cutting packets to have the same sizes of all target values
+    'normalize': False,           # Only for phase! Remove phase jumps
+    'diff_order': 0,             # Order of derivative (usual difference). 0 means without that option
     'ignore_warnings': True,     # For ignore all warnings, use it only if you sure. It speed up the code 
     'concat_edge': False          # Connects the edges of a dataset
 }
@@ -56,7 +56,7 @@ groups = {                                                     # Use regex. Only
     '.*dish.*': 'dish',
 }
 
-main_path = path.join('csi', 'use_in_paper', '2_objects')
+main_path = path.join('csi', 'use_in_paper', '4_objects')
 # main_path = path.join('csi', 'homelocation', 'five place')
 
 train_path = path.join(main_path, 'train')
@@ -68,8 +68,6 @@ df_test = prep.concat_csi(readcsi.get_csi_dfs(test_path, groups, complex_part))
 print('Train packets number:\t', df_train.shape[0], 'Packets:', df_train['object_type'].unique())
 print('Test packets number:\t', df_test.shape[0], 'Packets:', df_test['object_type'].unique())
 print('Reading complete -->', round(time() - time_start, 2))
-exit()
-
 # ---------------------------------------- PREPARATION ----------
 
 
