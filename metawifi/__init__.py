@@ -5,6 +5,7 @@ from .watcher import Watcher as W
 from .log.logcombiner import LogCombiner
 import pandas as pd
 import numpy as np
+import scipy
 
 
 class MetaWifi(LogCombiner):
@@ -98,14 +99,14 @@ class MetaWifi(LogCombiner):
 
     @__relist
     @W.stopwatch
-    def smooth(self, window: int=5, win_type: str=None):
+    def smooth(self, width: int=5, win: str=None):
         '''https://docs.scipy.org/doc/scipy/reference/signal.windows.html#module-scipy.signal.windows'''
         if self.__type == 'complex':
             self.__w.hprint(self.__w.FAIL, 'MetaWifi: in smooth active type can`t be complex! Exit...')
             exit()
 
         for i in range(len(self.__df_csi_lst)):
-            self.__df_csi_lst[i] = self.__df_csi_lst[i].T.rolling(window, min_periods=1, center=True, win_type=win_type).mean().T
+            self.__df_csi_lst[i] = self.__df_csi_lst[i].T.rolling(width, min_periods=1, center=True, win_type=win).mean().T
 
 
     @__relist
@@ -126,9 +127,10 @@ class MetaWifi(LogCombiner):
 
     @__relist
     @W.stopwatch
-    def diff(self):
-        for i in range(len(self.__df_csi_lst)):
-            self.__df_csi_lst[i] = self.__df_csi_lst[i].diff(axis=1).fillna(0)
+    def diff(self, order :int=1):
+        for k in range(order):
+            for i in range(len(self.__df_csi_lst)):
+                self.__df_csi_lst[i] = self.__df_csi_lst[i].diff(axis=1).fillna(0)
 
 
     @__relist
@@ -141,3 +143,17 @@ class MetaWifi(LogCombiner):
     @W.stopwatch
     def shift(self):
         pass
+
+    # Метод проигрывания csi на графике в реальном времени
+    def play():
+        pass
+
+
+
+# Также в этом классе будут функции для статистического анализа и построения графиков
+
+# Класс для методов машинного обучения
+class WiFiLearning:
+    def __init__(self, mf: MetaWifi):
+        self.mf = mf
+        self.__type = mf.__type
