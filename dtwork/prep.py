@@ -35,15 +35,6 @@ def concat_csi(df_lst):
     return big_df.assign(object_type=type_ds)
 
 
-def clever_apply(big_df, func, *args):
-    ''' Experimental. Don`t use.
-    Split df, then apply function to every 
-    df for single signal path and concatenate them in
-    one big df'''
-
-    return concat_csi([func(df, *args) for df in split_csi(big_df)])
-
-
 # ---------- CHANGE ----------
 def down(df, *df_lst):
     '''Lowers csi amplitudes by subtracting from each packet
@@ -64,22 +55,6 @@ def down(df, *df_lst):
             df_down['object_type'] = object_type
             df_down_lst.append(df_down)
         return df_down_lst
-
-
-def smooth_savgol(df, *df_lst, win_width=9, polyorder=3):
-    '''Smoothes csi. Not recommended apply to glued df. 
-    Filter applied Savitsky-Golay'''
-
-    smoothed = savgol_filter(df.drop(columns='object_type'), win_width, polyorder)
-    if len(df_lst) == 0:
-        return pd.DataFrame(smoothed).assign(object_type=df['object_type'].values)
-    else:
-        smoothed_lst = [pd.DataFrame(smoothed).assign(
-            object_type=df['object_type'].values)]
-        for df in df_lst:
-            smoothed = savgol_filter(df.drop(columns='object_type'), win_width, polyorder)
-            smoothed_lst.append(pd.DataFrame(smoothed).assign(object_type=df['object_type'].values))
-        return smoothed_lst
 
 
 def smooth(df, *df_lst, window=5, win_type=None):

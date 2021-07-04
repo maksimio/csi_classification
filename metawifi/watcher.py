@@ -18,6 +18,7 @@ class Watcher:
         if not hasattr(cls, 'instance'):
             cls.instance = super(Watcher, cls).__new__(cls)
             cls.__start_time = time()
+            print(cls.SUCCESS + cls.BOLD + 'Watcher start at ' + datetime.fromtimestamp(cls.__start_time).strftime('%m/%d/%Y, %H:%M:%S'))
         return cls.instance
 
 

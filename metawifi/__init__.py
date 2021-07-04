@@ -1,6 +1,6 @@
 #TODO Умное чтение вложенных файлов с отсевом не .dat файлов
 #TODO MetaWifi - методы с информацией о df (число категорий и т.п.)
-from re import I
+from __future__ import annotations
 from .watcher import Watcher as W
 from .log.logcombiner import LogCombiner
 import pandas as pd
@@ -24,11 +24,9 @@ class MetaWifi(LogCombiner):
         self.__w.hprint(self.__w.INFO, 'MetaWifi: get complex CSI dfs in ' + str(round(self.time[-1]['duration'], 2)) + ' seconds')
 
         self.__num_tones = int(self.df['num_tones'].mean())
-
         self.__type = 'complex'
 
-        self.__split_csi()
-        self.__concat_csi()
+        pd.options.mode.chained_assignment = None
 
 
     @W.stopwatch
@@ -43,7 +41,7 @@ class MetaWifi(LogCombiner):
 
 
     @W.stopwatch
-    def restore_csi(self):
+    def restore_csi(self) -> MetaWifi:
         csi = np.array(self.df['csi'].to_list()) #TODO отлавливать ошибку IndexError: tuple index out of range и выводить ее
         self.df_csi_complex = pd.DataFrame(csi.reshape((csi.shape[0], csi.shape[1] * csi.shape[2]))) #TODO заменить to_list на values
         self.df_csi_abs = self.df_csi_complex.abs()
@@ -87,17 +85,59 @@ class MetaWifi(LogCombiner):
 
     def get_type(self) -> str:
         return self.__type
-        
+
+
+    def __relist(f) -> function:
+        def wrapper(self, *args, **kwargs) -> MetaWifi:
+            self.__split_csi()
+            f(self, *args, **kwargs)
+            self.__concat_csi()
+            return self
+        return wrapper
     
+
+    @__relist
+    @W.stopwatch
     def smooth(self, window: int=5, win_type: str=None):
         '''https://docs.scipy.org/doc/scipy/reference/signal.windows.html#module-scipy.signal.windows'''
         if self.__type == 'complex':
             self.__w.hprint(self.__w.FAIL, 'MetaWifi: in smooth active type can`t be complex! Exit...')
             exit()
-        self.__split_csi()
 
         for i in range(len(self.__df_csi_lst)):
             self.__df_csi_lst[i] = self.__df_csi_lst[i].T.rolling(window, min_periods=1, center=True, win_type=win_type).mean().T
 
-        self.__concat_csi()
-        return self
+
+    @__relist
+    @W.stopwatch
+    def unjump(self):
+        if self.__type != 'phase':
+            self.__w.hprint(self.__w.FAIL, 'MetaWifi: in normalize_phase active type should be phase! Exit...')
+            exit()
+
+        for i in range(len(self.__df_csi_lst)):
+            df_diff = self.__df_csi_lst[i].diff(axis=1).fillna(0)
+            df_diff[(df_diff < np.pi * 2 - 1) & (df_diff > -np.pi * 2 + 1)] = 0
+            
+            for column in self.__df_csi_lst[i]:
+                self.__df_csi_lst[i].loc[:, column:][df_diff[column] > 0] -= np.pi * 2
+                self.__df_csi_lst[i].loc[:, column:][df_diff[column] < 0] += np.pi * 2
+
+
+    @__relist
+    @W.stopwatch
+    def diff(self):
+        for i in range(len(self.__df_csi_lst)):
+            self.__df_csi_lst[i] = self.__df_csi_lst[i].diff(axis=1).fillna(0)
+
+
+    @__relist
+    @W.stopwatch
+    def scale(self):
+        pass
+
+    
+    @__relist
+    @W.stopwatch
+    def shift(self):
+        pass
