@@ -56,8 +56,8 @@ groups = {                                                     # Use regex. Only
     '.*dish.*': 'dish',
 }
 
-main_path = path.join('csi', 'use_in_paper', '4_objects')
-# main_path = path.join('csi', 'homelocation', 'five place')
+# main_path = path.join('csi', 'use_in_paper', '4_objects')
+main_path = path.join('csi', 'homelocation', 'two place')
 
 train_path = path.join(main_path, 'train')
 test_path = path.join(main_path, 'test')
@@ -129,8 +129,8 @@ if settings['make_same']:
 # ---------------------------------------- CLASSIFICATION ----------
 clf_res = pd.concat([
     # ml.fit_ffnn(df_train, df_test),
-    # ml.fit_cnn(df_train, df_test),
-    ml.fit_sklearn(df_train, df_test),
+    ml.fit_cnn(df_train, df_test),
+    # ml.fit_sklearn(df_train, df_test),
     ])
 
 # ---------------------------------------- RESULTS COMPARISON ----------

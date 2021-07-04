@@ -98,6 +98,8 @@ def fit_cnn(df_train, df_test):
 
     batch_size = 50
     epochs = 50
+    print(x_train)
+    exit()
     x_train = np.reshape(x_train, (-1, 4, 56, 1)) / 400
     x_test = np.reshape(x_test, (-1, 4, 56, 1)) / 400
 
