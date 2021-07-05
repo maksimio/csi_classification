@@ -41,7 +41,6 @@ class WifiLearn:
         self.__w.hprint(self.__w.INFO, 'WifiLearn: create with ' + str(self.lens['train']) + ' train and ' + str(self.lens['test']) + ' test packets')
 
 
-
     @W.stopwatch
     def __to_categorical(self):
         self.types = sorted(self.y_train.unique())
@@ -55,6 +54,10 @@ class WifiLearn:
 
         self.y_train_cat = utils.to_categorical(y_train, len(self.types))
         self.y_test_cat = utils.to_categorical(y_test, len(self.types))
+
+
+    def augment(self, part=1):
+        pass
 
 
     def normalize(self):
@@ -100,9 +103,8 @@ class WifiLearn:
     @W.stopwatch
     def fit_cnn(self, batch_size: int=50, epochs: int=50) -> WifiLearn:
         self.__w.hprint(self.__w.INFO, 'WifiLearn: start fit_cnn')
-        print(self.x_train)
-        self.x_train = np.reshape(self.x_train.to_numpy(), (-1, 4, 56, 1)) / 400
-        self.x_test = np.reshape(self.x_test.to_numpy(), (-1, 4, 56, 1)) / 400
+        self.x_train = np.reshape(self.x_train.to_numpy(), (-1, 4, 56, 1)) / 1 # 400
+        self.x_test = np.reshape(self.x_test.to_numpy(), (-1, 4, 56, 1)) / 1
 
         model = Sequential()
         model.add(Conv2D(28, (3, 3), padding='same',input_shape=(4, 56, 1), activation='relu'))
@@ -129,4 +131,24 @@ class WifiLearn:
         print('keras CNN accuracy:', round(model.evaluate(self.x_test, self.y_test_cat, verbose=0)[1] * 100, 2), '-->', round(time() - start_fit, 2))
         print(model.summary())
 
+        return self
+
+
+    def fit_ffnn(self, batch_size: int=50, epochs: int=50):
+        model = Sequential()
+        model.add(Dropout(0.5))
+        model.add(Dense(360, input_dim=self.x_train.shape[1], activation='relu'))
+        model.add(Dropout(0.5))
+        model.add(Dense(36, activation='relu'))
+        model.add(Dropout(0.5))
+        model.add(Dense(len(self.types), activation='softmax'))
+        
+        model.compile(loss='categorical_crossentropy', optimizer='Nadam', metrics=['accuracy'])
+
+        start_fit = time()
+        model.fit(self.x_train, self.y_train_cat, batch_size=batch_size, epochs=epochs, verbose=1, validation_split=0.1, use_multiprocessing=True)
+        clf_res = pd.DataFrame(columns=('method name', 'accuracy', 'time'))
+        clf_res.loc[len(clf_res)] = ['FFNN', round(model.evaluate(self.x_test, self.y_test_cat, verbose=0)[1] * 100, 2), round(time() - start_fit, 2)]
+
+        print('keras FFNN accuracy:', round(model.evaluate(self.x_test, self.y_test_cat, verbose=0)[1] * 100, 2), '-->', round(time() - start_fit, 2))
         return self

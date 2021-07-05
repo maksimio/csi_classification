@@ -60,6 +60,7 @@ class WifiDf(LogCombiner):
             item = df[[k + i*self.__num_tones for k in range(0, self.__num_tones)]]
             self.__df_csi_lst.append(item)
 
+
     def __concat_csi(self) -> None:
         if self.__type == 'complex':
             self.df_csi_complex = pd.concat(self.__df_csi_lst, axis=1)
@@ -67,6 +68,7 @@ class WifiDf(LogCombiner):
             self.df_csi_abs = pd.concat(self.__df_csi_lst, axis=1)
         elif self.__type == 'phase':
             self.df_csi_phase = pd.concat(self.__df_csi_lst, axis=1)
+
 
     def set_type(self, active_type: str):
         if active_type == 'complex' or active_type == 'abs' or active_type == 'phase':
@@ -187,6 +189,23 @@ class WifiDf(LogCombiner):
 
         return x_train, y_train, x_test, y_test
 
+    
+    def prep_abs_phase(self):
+        df = pd.concat([self.df_csi_abs, self.df_csi_phase], axis=1)
+
+        df['category'] = self.df['category']
+        df['type'] = self.df['type']
+
+        train = df[df['type'] == 'train']
+        test = df[df['type'] == 'test']
+
+        x_train = train.drop(['type', 'category'], axis=1)
+        y_train = train['category']
+        x_test = test.drop(['type', 'category'], axis=1)
+        y_test = test['category']
+
+        return x_train, y_train, x_test, y_test
+
 
     def prep_rssi(self):
         df = pd.DataFrame()
@@ -205,24 +224,3 @@ class WifiDf(LogCombiner):
 
         return x_train, y_train, x_test, y_test
 
-
-    # def prep_metrics(self):
-    #     if self.__type == 'complex':
-    #         csi = self.df_csi_complex
-    #     elif self.__type == 'abs':
-    #         csi = self.df_csi_abs
-    #     elif self.__type == 'phase':
-    #         csi = self.df_csi_phase
-
-    #     df['category'] = self.df['category']
-    #     df['type'] = self.df['type']
-
-    #     train = df[df['type'] == 'train']
-    #     test = df[df['type'] == 'test']
-
-    #     x_train = train.drop(['type', 'category'], axis=1)
-    #     y_train = train['category']
-    #     x_test = test.drop(['type', 'category'], axis=1)
-    #     y_test = test['category']
-
-    #     return x_train, y_train, x_test, y_test
