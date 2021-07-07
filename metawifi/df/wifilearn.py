@@ -134,7 +134,7 @@ class WifiLearn:
         return self
 
 
-    def fit_ffnn(self, batch_size: int=50, epochs: int=50):
+    def fit_ffnn(self, batch_size: int=10, epochs: int=10):
         model = Sequential()
         model.add(Dropout(0.5))
         model.add(Dense(360, input_dim=self.x_train.shape[1], activation='relu'))
