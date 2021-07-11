@@ -35,7 +35,7 @@ class WifiDf(LogCombiner):
     @W.stopwatch
     def __filter(self) -> None:
         df = self.df_raw
-        self.df = df[(df['csi_len'] != 0)].reset_index(drop=True)
+        self.df = df[(df['csi_len'] != 0) & (df['payload_len'] > 1000)].reset_index(drop=True)
 
     @W.stopwatch
     def restore_csi(self) -> WifiDf:

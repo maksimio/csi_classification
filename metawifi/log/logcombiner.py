@@ -7,7 +7,7 @@ from re import search
 class LogCombiner:
     __base_categories = [
         'kitchen', 'room', 'bathroom', 'hall', 'toilet', 'air',
-        'bottle', 'thermos', 'grater', 'casserole', 'dish'
+        'bottle', 'thermos', 'grater', 'casserole', 'dish', 'outer'
     ]
     __unknown = 'unknown'
 

@@ -78,7 +78,6 @@ class WifiLearn:
         self.__w.hprint(self.__w.INFO, 'WifiLearn: start fit_classic')
         classifiers = {  # You can add your clfs or change params here:
             'Logistic Regression':              LogisticRegression(max_iter=10000),
-            'SVC':                              SVC(),
             'K-nearest neighbors':              KNeighborsClassifier(),
             'Gaussian Naive Bayes':             GaussianNB(),
             'Perceptron':                       Perceptron(),
@@ -86,7 +85,8 @@ class WifiLearn:
             'Stochastic Gradient Descent':      SGDClassifier(),
             'Random Forest':                    RandomForestClassifier(max_depth=20),
             'sk-learn Neural Net':              MLPClassifier(hidden_layer_sizes=(200, 20)),
-            'Ada Boost':                        AdaBoostClassifier()
+            'Ada Boost':                        AdaBoostClassifier(),
+            'SVC':                              SVC(),
         }
         res = []
 
