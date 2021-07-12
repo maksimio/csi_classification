@@ -5,7 +5,8 @@ import numpy as np
 import scipy
 
 
-from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LogisticRegression, RidgeClassifier, PassiveAggressiveClassifier
+from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 from sklearn.svm import SVC, LinearSVC
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 from sklearn.neighbors import KNeighborsClassifier
@@ -77,11 +78,17 @@ class WifiLearn:
     def fit_classic(self) -> WifiLearn:
         self.__w.hprint(self.__w.INFO, 'WifiLearn: start fit_classic')
         classifiers = {  # You can add your clfs or change params here:
-            'Logistic Regression':              LogisticRegression(max_iter=10000),
+            'RidgeClassifier':                  RidgeClassifier(class_weight='balanced'),
+            'QuadraticDiscriminantAnalysis':    QuadraticDiscriminantAnalysis(),
+            'PassiveAggressiveClassifier':      PassiveAggressiveClassifier(),
+            'Logistic Regression':              LogisticRegression(),
+            'Logistic Regression1':              LogisticRegression(class_weight='balanced'),
+            'Logistic Regression2':              LogisticRegression(solver='liblinear'),
+            'Logistic Regression3':              LogisticRegression(C=0.6, max_iter=1000),
             'K-nearest neighbors':              KNeighborsClassifier(),
             'Gaussian Naive Bayes':             GaussianNB(),
             'Perceptron':                       Perceptron(),
-            'Linear SVC':                       LinearSVC(max_iter=10000),
+            # 'Linear SVC':                       LinearSVC(max_iter=10000),
             'Stochastic Gradient Descent':      SGDClassifier(),
             'Random Forest':                    RandomForestClassifier(max_depth=20),
             'sk-learn Neural Net':              MLPClassifier(hidden_layer_sizes=(200, 20)),
