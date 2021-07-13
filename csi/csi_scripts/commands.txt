@@ -1,0 +1,7 @@
+sendData wlan0 14:CC:20:FC:1A:88 1000
+
+recvCSI /tmp/data.dat
+
+scp root@192.168.1.1:/tmp/data.dat test.dat
+
+rm /tmp/data.dat

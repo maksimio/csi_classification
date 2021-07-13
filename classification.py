@@ -20,3 +20,7 @@ fft = scipy.fft(df_test_air[42])
 
 plt.plot(fft)
 plt.show()
+
+
+#TODO
+# 
