@@ -3,9 +3,10 @@ from ..watcher import Watcher as W
 import pandas as pd
 import numpy as np
 import scipy
+from sklearn.utils import shuffle
 
 
-from sklearn.linear_model import LogisticRegression, RidgeClassifier, PassiveAggressiveClassifier
+from sklearn.linear_model import LogisticRegression, RidgeClassifier, PassiveAggressiveClassifier, LinearRegression
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 from sklearn.svm import SVC, LinearSVC
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
@@ -72,6 +73,37 @@ class WifiLearn:
     def print(self) -> WifiLearn:
         print(pd.DataFrame(self.results))
         return self
+
+
+    def fit_logistic_test(self):
+        clf = LogisticRegression(max_iter=1000)
+        # self.x_train, self.y_train = shuffle(self.x_train, self.y_train)
+
+        clf.fit(self.x_train, self.y_train)
+        self.__w.hprint(self.__w.BOLD, 'WifiLearn: fit ' + ': ' + str(round(clf.score(self.x_test, self.y_test) * 100, 2)))
+
+        df = pd.DataFrame()
+        df['real'] = self.y_test
+        df['predict'] = clf.predict(self.x_test)
+
+        return df
+
+    
+    def fit_regression(self):
+        a, b, c = 0, -1, 1
+        self.y_train[self.y_train == 'outer'] = a
+        self.y_test[self.y_test == 'outer'] = a
+
+        self.y_train[self.y_train == 'room'] = b  
+        self.y_test[self.y_test == 'room'] = b
+
+        self.y_test[self.y_test == 'kitchen'] = c
+        self.y_train[self.y_train == 'kitchen'] = c
+
+        clf = LinearRegression()
+        clf.fit(self.x_train, self.y_train)
+        res = pd.DataFrame(clf.predict(self.x_test))
+        return res
 
 
     @W.stopwatch
