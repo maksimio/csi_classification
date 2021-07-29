@@ -16,7 +16,7 @@ from sklearn.linear_model import Perceptron, SGDClassifier
 from sklearn.neural_network import MLPClassifier
 from time import time
 
-from keras import utils
+from tensorflow.keras import utils
 from keras.models import Sequential
 from keras.layers import Dense, Flatten, Activation, Dropout
 from keras.layers.convolutional import Conv2D, MaxPooling2D
@@ -114,13 +114,10 @@ class WifiLearn:
             'QuadraticDiscriminantAnalysis':    QuadraticDiscriminantAnalysis(),
             'PassiveAggressiveClassifier':      PassiveAggressiveClassifier(),
             'Logistic Regression':              LogisticRegression(),
-            'Logistic Regression1':              LogisticRegression(class_weight='balanced'),
-            'Logistic Regression2':              LogisticRegression(solver='liblinear'),
-            'Logistic Regression3':              LogisticRegression(C=0.6, max_iter=1000),
             'K-nearest neighbors':              KNeighborsClassifier(),
             'Gaussian Naive Bayes':             GaussianNB(),
             'Perceptron':                       Perceptron(),
-            # 'Linear SVC':                       LinearSVC(max_iter=10000),
+            'Linear SVC':                       LinearSVC(max_iter=1000),
             'Stochastic Gradient Descent':      SGDClassifier(),
             'Random Forest':                    RandomForestClassifier(max_depth=20),
             'sk-learn Neural Net':              MLPClassifier(hidden_layer_sizes=(200, 20)),

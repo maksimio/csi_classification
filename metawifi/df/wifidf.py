@@ -224,3 +224,33 @@ class WifiDf(LogCombiner):
 
         return x_train, y_train, x_test, y_test
 
+
+    def prep_featurespace(self):
+        df = pd.DataFrame()
+
+        self.__split_csi()
+        i = 1
+        for df_part in self.__df_csi_lst:
+            df['std_' + str(i)] = df_part.std(axis=1)
+            # df['ymax_' + str(i)] = pd.DataFrame(np.fft.fft(df_part.sub(df_part.mean(axis=1)) - 1, axis=1)).abs().max() ** 2 / df.shape[1]
+            df['mu42_' + str(i)] = (df_part ** 4).mean(axis=1) / ((df_part ** 2).mean(axis=1) ** 4)
+            df['ln_' + str(i)] = np.log(df_part.mean(axis=1))
+            df['mu32_' + str(i)] = (df_part ** 3).mean(axis=1) / ((df_part ** 2).mean(axis=1) ** (3 / 2))
+            df['skew_' + str(i)] = df_part.skew(axis=1)
+            df['kurt_' + str(i)] = df_part.kurt(axis=1)
+            i += 1
+        
+
+        df['category'] = self.df['category']
+        df['type'] = self.df['type']
+
+        train = df[df['type'] == 'train']
+        test = df[df['type'] == 'test']
+
+        x_train = train.drop(['type', 'category'], axis=1)
+        y_train = train['category']
+        x_test = test.drop(['type', 'category'], axis=1)
+        y_test = test['category']
+
+        return x_train, y_train, x_test, y_test
+

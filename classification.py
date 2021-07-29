@@ -1,26 +1,25 @@
+from metawifi.df import wifilearn
 from metawifi import WifiDf, WifiLearn
 import pandas as pd
 from matplotlib import pyplot as plt
 import scipy
+import seaborn as sns
 
 
 wd = WifiDf('./csi/use_in_paper/2_objects').set_type('abs')
+# wd = WifiDf('./csi/homelocation/three place').set_type('abs')
+x, y, z, a = wd.prep_featurespace()
+df = pd.DataFrame(x)
+df['target'] = y
+# print(x)
+sns.lmplot(x='skew_1', y='kurt_1', data=df, hue='target', fit_reg=False)
+sns.lmplot(x='skew_2', y='kurt_2', data=df, hue='target', fit_reg=False)
+sns.lmplot(x='skew_3', y='kurt_3', data=df, hue='target', fit_reg=False)
+sns.lmplot(x='std_1', y='mu42_1', data=df, hue='target', fit_reg=False)
 
-x_train, y_train, x_test, y_test = wd.prep_csi()
-df_train = pd.concat([x_train, y_train], axis=1).reset_index(drop=True)
-print(df_train)
-df_train_air = df_train[df_train['category'] == 'bottle']
-df_test = pd.concat([x_test, y_test], axis=1).reset_index(drop=True)
-df_test_air = df_test[df_test['category'] == 'bottle']
-
-df_train_air.boxplot([i for i in range(224)], color='green')
-df_test_air.boxplot([i for i in range(224)], color='violet')
-df_train_air.hist(30)
-fft = scipy.fft(df_test_air[42])
-
-plt.plot(fft)
 plt.show()
+exit()
+wl = WifiLearn(*wd.prep_csi()).fit_classic().print()
 
 
-#TODO
-# 
+# https://habr.com/ru/company/ods/blog/325422/
