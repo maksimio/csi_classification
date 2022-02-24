@@ -20,7 +20,7 @@ from tensorflow.keras import utils
 from keras.models import Sequential
 from keras.layers import Dense, Flatten, Activation, Dropout
 from keras.layers.convolutional import Conv2D, MaxPooling2D
-from keras.optimizers import SGD
+from tensorflow.keras.optimizers import SGD
 
 from time import time
 import pandas as pd
