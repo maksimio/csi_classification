@@ -1,4 +1,3 @@
-from ..watcher import Watcher as W
 from .logreader import LogReader
 from os.path import join
 from os import listdir
@@ -16,11 +15,9 @@ class LogCombiner:
         self.filelist = []
         self.readers = []
         self.raw = []
-        self.__w = W()
 
         if categories == None:
             self.categories = self.__base_categories
-            self.__w.hprint(self.__w.WARNING, 'LogCombiner: set base_categories in categories!')
         else:
             self.categories = categories
 
@@ -63,14 +60,12 @@ class LogCombiner:
         return self.__unknown
 
 
-    @W.stopwatch
     def __read(self):
         for fpath in self.filelist:
             self.readers.append(LogReader(fpath).read())
         return self
 
 
-    @W.stopwatch
     def _extract(self):
         for logreader in self.readers:
             self.raw += logreader.add().add('category', self.__get_category(logreader.path)).add('type', self.__get_type(logreader.path))
@@ -79,8 +74,6 @@ class LogCombiner:
 
     def combine(self):
         self.__read()
-        self.__w.hprint(self.__w.INFO, 'LogCombiner: read ' + str(len(self.readers)) + ' files in ' + str(round(self.time[-1]['duration'], 2)) + ' seconds (' + str(round(len(self.readers) / self.time[-1]['duration'], 1)) +  ' files/second)')
         self._extract()
-        self.__w.hprint(self.__w.INFO, 'LogCombiner: extract files in ' + str(round(self.time[-1]['duration'], 2)) + ' seconds')
 
         return self

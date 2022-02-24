@@ -1,8 +1,6 @@
 from __future__ import annotations
-from ..watcher import Watcher as W
 import pandas as pd
 import numpy as np
-import scipy
 from sklearn.utils import shuffle
 
 
@@ -16,11 +14,11 @@ from sklearn.linear_model import Perceptron, SGDClassifier
 from sklearn.neural_network import MLPClassifier
 from time import time
 
-from tensorflow.keras import utils
+from keras import utils
 from keras.models import Sequential
 from keras.layers import Dense, Flatten, Activation, Dropout
 from keras.layers.convolutional import Conv2D, MaxPooling2D
-from tensorflow.keras.optimizers import SGD
+from keras.optimizers import gradient_descent_v2
 
 from time import time
 import pandas as pd
@@ -37,13 +35,10 @@ class WifiLearn:
         self.x_test = x_test
         self.y_test = y_test
         self.lens = { 'train': x_train.shape[0], 'test': x_test.shape[0] }
-        self.__w = W()
         self.results = []
         self.__to_categorical()
-        self.__w.hprint(self.__w.INFO, 'WifiLearn: create with ' + str(self.lens['train']) + ' train and ' + str(self.lens['test']) + ' test packets')
 
 
-    @W.stopwatch
     def __to_categorical(self):
         self.types = sorted(self.y_train.unique())
         i = 0
@@ -80,7 +75,6 @@ class WifiLearn:
         # self.x_train, self.y_train = shuffle(self.x_train, self.y_train)
 
         clf.fit(self.x_train, self.y_train)
-        self.__w.hprint(self.__w.BOLD, 'WifiLearn: fit ' + ': ' + str(round(clf.score(self.x_test, self.y_test) * 100, 2)))
 
         df = pd.DataFrame()
         df['real'] = self.y_test
@@ -106,9 +100,7 @@ class WifiLearn:
         return res
 
 
-    @W.stopwatch
     def fit_classic(self) -> WifiLearn:
-        self.__w.hprint(self.__w.INFO, 'WifiLearn: start fit_classic')
         classifiers = {  # You can add your clfs or change params here:
             'RidgeClassifier':                  RidgeClassifier(class_weight='balanced'),
             'QuadraticDiscriminantAnalysis':    QuadraticDiscriminantAnalysis(),
@@ -130,15 +122,12 @@ class WifiLearn:
             start_fit = time()
             classifiers[clf].fit(self.x_train, self.y_train)
             res.append({'name': clf, 'accuracy': round(classifiers[clf].score(self.x_test, self.y_test) * 100, 2),'duration': round(time() - start_fit, 2)})
-            self.__w.hprint(self.__w.BOLD, 'WifiLearn: fit ' + clf + ': ' + str(res[-1]['accuracy']))
 
         self.results += res
         return self
 
 
-    @W.stopwatch
     def fit_cnn(self, batch_size: int=50, epochs: int=50) -> WifiLearn:
-        self.__w.hprint(self.__w.INFO, 'WifiLearn: start fit_cnn')
         self.x_train = np.reshape(self.x_train.to_numpy(), (-1, 4, 56, 1)) / 1 # 400
         self.x_test = np.reshape(self.x_test.to_numpy(), (-1, 4, 56, 1)) / 1
 
@@ -156,7 +145,7 @@ class WifiLearn:
         model.add(Dropout(0.1))
         model.add(Dense(len(self.types), activation='softmax'))
 
-        sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
+        sgd = gradient_descent_v2.SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
         model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
 
         start_fit = time()

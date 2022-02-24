@@ -1,4 +1,3 @@
-from ..watcher import Watcher as W
 from numpy import zeros, array
 from struct import unpack
 from os import path
@@ -64,7 +63,6 @@ class LogReader:
         self.path = path
         self.raw = []
 
-    @W.stopwatch
     def read(self):
         with open(self.path, 'rb') as f:
             len_file = path.getsize(self.path)
