@@ -1,4 +1,4 @@
-📚[Link](https://github.com/maksimio/csi_classification) to main project page
+📚[Link](https://github.com/maksimio/smartwifi) to main project page
 
 ![](./img/logo.png)
 # Annotation
